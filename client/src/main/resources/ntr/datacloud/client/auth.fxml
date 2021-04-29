@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.AuthController">
+    <children>
+        <MenuBar>
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Close" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Delete" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="About" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+
+        <Label text="Data cloud">
+
+        </Label>
+
+        <StackPane prefHeight="150.0" prefWidth="200.0">
+            <children>
+
+                <VBox fx:id="regPanel" alignment="TOP_CENTER" spacing="15.0" visible="false">
+                    <children>
+                        <HBox alignment="CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
+                            <children>
+                                <VBox spacing="10.0">
+                                    <children>
+                                        <Label text="Username:">
+                                        </Label>
+                                        <Label text="Password:">
+                                        </Label>
+                                        <Label text="Repeat password:">
+                                        </Label>
+                                    </children>
+                                </VBox>
+                                <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
+                                    <children>
+                                        <TextField fx:id="regLogin" minWidth="200.0">
+
+                                        </TextField>
+                                        <PasswordField fx:id="regPass" minWidth="200.0">
+
+                                        </PasswordField>
+                                        <PasswordField fx:id="regPassRepeat" minWidth="200.0">
+
+                                        </PasswordField>
+                                    </children>
+
+                                </VBox>
+                            </children>
+                        </HBox>
+                        <Button fx:id="registerBtn" minWidth="200.0" mnemonicParsing="false" onAction="#regUser" text="REGISTER" />
+                        <Button fx:id="backBtn" minWidth="200.0" mnemonicParsing="false" onAction="#backToLogonPanel" text="BACK" />
+                    </children>
+                </VBox>
+                <VBox fx:id="logonPanel" alignment="CENTER" spacing="15.0" StackPane.alignment="CENTER">
+                    <children>
+                        <HBox alignment="CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
+                            <children>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <children>
+                                        <Label text="Username:">
+
+                                        </Label>
+                                        <Label text="Password:">
+
+                                        </Label>
+                                    </children>
+
+                                </VBox>
+                                <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
+                                    <children>
+                                        <TextField fx:id="logonLogin" minWidth="200.0">
+
+                                        </TextField>
+                                        <PasswordField fx:id="logonPass" minWidth="200.0">
+
+                                        </PasswordField>
+                                    </children>
+
+                                </VBox>
+                            </children>
+                        </HBox>
+                        <Button fx:id="logonBtn" minWidth="200.0" mnemonicParsing="false" onAction="#logonUser" text="logon" />
+                        <Button fx:id="regBtn" minWidth="200.0" mnemonicParsing="false" onAction="#toRegPanel" text="reg" />
+
+                    </children>
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin>
+                </VBox>
+            </children>
+            <opaqueInsets>
+                <Insets />
+            </opaqueInsets>
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+        </StackPane>
+    </children>
+</VBox>
