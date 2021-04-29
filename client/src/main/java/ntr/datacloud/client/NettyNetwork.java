@@ -18,6 +18,9 @@ public class NettyNetwork {
     private ObjectDecoderInputStream in;
 
     //todo configure somewhere
+
+
+
     private String host = "localhost";
     private int port = 8189;
 

@@ -4,20 +4,24 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 
 @Builder (access = AccessLevel.PUBLIC)
 @Getter
 public class RegMessage extends ServiceMessage{
 
+    private enum Status {
+        NO_RESPONSE,
+        OK,
+
+        UNKNOWN_ERROR
+    }
+
     private final String login;
     private final String password;
+    @Setter
+    private Status status = Status.NO_RESPONSE;
 
-    public RegMessage(String login, String password) {
-        this.login = login;
-        this.password = password;
-    }
 
     @Override
     public String toString() {

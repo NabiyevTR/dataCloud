@@ -28,6 +28,7 @@ public class ServiceServiceExecutor {
         if (authService.userExists(message.getLogin(),message.getPassword())) {
             //todo add to active users
             //todo send message auth success
+
             log.info("Find user!");
         }
         return false;

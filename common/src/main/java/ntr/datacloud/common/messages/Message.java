@@ -12,6 +12,11 @@ public class Message implements Serializable {
 
     protected MessageType type =null;
 
+
+
+
+
+
     @Override
     public String toString() {
         return type.toString();

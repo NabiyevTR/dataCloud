@@ -5,10 +5,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.messages.LogonMessage;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.RegMessage;
 
+@Log4j
 public class AuthController {
 
 
@@ -72,5 +74,7 @@ public class AuthController {
                 .build());
 
 //todo get response
+        Message message = network.readMessage();
+        log.info(message);
     }
 }

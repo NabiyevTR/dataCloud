@@ -15,6 +15,7 @@ public class DataCloudClient extends Application {
 
     private static Scene scene;
 
+
     @Override
     public void start(Stage stage) throws IOException {
         scene = new Scene(loadFXML("auth"), 640, 480);
