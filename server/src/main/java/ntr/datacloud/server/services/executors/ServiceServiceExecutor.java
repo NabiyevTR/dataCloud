@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.messages.LogonMessage;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.RegMessage;
+import ntr.datacloud.common.messages.ServiceMessageStatus;
 import ntr.datacloud.server.services.auth.AuthService;
 import ntr.datacloud.server.services.auth.JDBCAuthService;
 
@@ -26,16 +27,20 @@ public class ServiceServiceExecutor {
 
     private static boolean logonUser(LogonMessage message) {
         if (authService.userExists(message.getLogin(),message.getPassword())) {
-            //todo add to active users
-            //todo send message auth success
-
-            log.info("Find user!");
+            message.setStatus(ServiceMessageStatus.OK);
         }
         return false;
     }
 
 
     private static boolean regUser(RegMessage message) {
-       return authService.registration(message.getLogin(), message.getPassword());
+       if (authService.registration(message.getLogin(), message.getPassword())) {
+           message.setStatus(ServiceMessageStatus.OK);
+           return true;
+       } else {
+           message.setStatus(ServiceMessageStatus.INCORRECT_PASSWORD_OR_LOGIN);
+           return false;
+       }
+       //todo if another error?
     }
 }

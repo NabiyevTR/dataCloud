@@ -2,7 +2,7 @@ package ntr.datacloud.common.messages;
 
 import lombok.Getter;
 
-enum ServiceMessageStatus {
+public enum ServiceMessageStatus {
     NO_RESPONSE("No response from server.") ,
     OK ("Operation completed successfully."),
     INCORRECT_PASSWORD_OR_LOGIN("Incorrect login or password."),

@@ -9,15 +9,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 public class LogonMessage extends ServiceMessage {
 
-
-
     private final String login;
     private final String password;
 
     @Override
     public String toString() {
-        return String.format("%s: login = %s; pass = %s,",
-                getClass().getSimpleName(), login, password);
+        return  String.format("%s: status = %s login = %s; pass = %s,",
+                getClass().getSimpleName() , status, login, password);
     }
 
 }
