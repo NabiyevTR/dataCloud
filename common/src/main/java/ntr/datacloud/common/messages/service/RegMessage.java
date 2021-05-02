@@ -1,17 +1,14 @@
-package ntr.datacloud.common.messages;
+package ntr.datacloud.common.messages.service;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 
-@Builder (access = AccessLevel.PUBLIC)
+@SuperBuilder
 @Getter
-public class RegMessage extends ServiceMessage{
-
-    private final String login;
-    private final String password;
+public class RegMessage extends ServiceMessage {
 
 
     @Override

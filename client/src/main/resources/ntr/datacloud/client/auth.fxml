@@ -4,23 +4,24 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.AuthController">
+<VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.controller.AuthController">
     <children>
         <MenuBar>
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Close" />
+                        <MenuItem mnemonicParsing="false" text="Close"/>
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Edit">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Delete" />
+                        <MenuItem mnemonicParsing="false" text="Delete"/>
                     </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="About" />
+                        <MenuItem mnemonicParsing="false" text="About"/>
                     </items>
                 </Menu>
             </menus>
@@ -58,13 +59,17 @@
                                         <PasswordField fx:id="regPassRepeat" minWidth="200.0">
 
                                         </PasswordField>
+                                        <Label fx:id="regError" text="Label" visible="false"/>
                                     </children>
 
                                 </VBox>
                             </children>
                         </HBox>
-                        <Button fx:id="registerBtn" minWidth="200.0" mnemonicParsing="false" onAction="#regUser" text="REGISTER" />
-                        <Button fx:id="backBtn" minWidth="200.0" mnemonicParsing="false" onAction="#backToLogonPanel" text="BACK" />
+                        <Button fx:id="registerBtn" minWidth="200.0" mnemonicParsing="false" onAction="#regUser"
+                                text="REGISTER"/>
+                        <Button fx:id="backBtn" minWidth="200.0" mnemonicParsing="false" onAction="#backToLogonPanel"
+                                text="BACK"/>
+
                     </children>
                 </VBox>
                 <VBox fx:id="logonPanel" alignment="CENTER" spacing="15.0" StackPane.alignment="CENTER">
@@ -90,25 +95,31 @@
                                         <PasswordField fx:id="logonPass" minWidth="200.0">
 
                                         </PasswordField>
+
+                                        <Label fx:id="logonError" text="Label" visible="false"/>
                                     </children>
 
                                 </VBox>
                             </children>
                         </HBox>
-                        <Button fx:id="logonBtn" minWidth="200.0" mnemonicParsing="false" onAction="#logonUser" text="logon" />
-                        <Button fx:id="regBtn" minWidth="200.0" mnemonicParsing="false" onAction="#toRegPanel" text="reg" />
+
+                        <Button fx:id="logonBtn" minWidth="200.0" mnemonicParsing="false" onAction="#logonUser"
+                                text="logon"/>
+                        <Button fx:id="regBtn" minWidth="200.0" mnemonicParsing="false" onAction="#toRegPanel"
+                                text="reg"/>
+
 
                     </children>
-               <StackPane.margin>
-                  <Insets />
-               </StackPane.margin>
+                    <StackPane.margin>
+                        <Insets/>
+                    </StackPane.margin>
                 </VBox>
             </children>
             <opaqueInsets>
-                <Insets />
+                <Insets/>
             </opaqueInsets>
             <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
             </padding>
         </StackPane>
     </children>

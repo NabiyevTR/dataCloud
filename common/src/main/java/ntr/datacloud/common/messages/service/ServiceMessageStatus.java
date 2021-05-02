@@ -1,4 +1,4 @@
-package ntr.datacloud.common.messages;
+package ntr.datacloud.common.messages.service;
 
 import lombok.Getter;
 
