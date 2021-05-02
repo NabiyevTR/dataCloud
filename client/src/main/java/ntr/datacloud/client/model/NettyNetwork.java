@@ -1,4 +1,4 @@
-package ntr.datacloud.client;
+package ntr.datacloud.client.model;
 
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
@@ -18,7 +18,6 @@ public class NettyNetwork {
     private ObjectDecoderInputStream in;
 
     //todo configure somewhere
-
 
 
     private String host = "localhost";
@@ -85,7 +84,11 @@ public class NettyNetwork {
 
     public Message readMessage() {
         try {
-            return (Message) in.readObject();
+            Message message = (Message) in.readObject();
+            log.debug(
+                    String.format("Client receive message to server %s/%d: %s", host, port, message)
+            );
+            return message;
         } catch (Exception e) {
             log.error(
                     String.format("Client failed to receive message from server %s/%d: ", host, port), e

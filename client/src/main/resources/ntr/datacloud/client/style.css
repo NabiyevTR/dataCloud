@@ -1,0 +1,14 @@
+.button {
+    -fx-pref-width: 80px;
+    -fx-pref-height: 10px;
+
+}
+
+.table-view {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+
+}
+
+
+

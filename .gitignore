@@ -33,3 +33,10 @@ common/target/
 server/target/
 
 jdk/
+*.txt
+
+client/src/main/resources/ntr/datacloud/images/
+
+test/client/
+
+test/server/
