@@ -11,5 +11,8 @@ public class DeleteMessage extends DataMessage{
 
     private String fileToDelete;
 
-
+    @Override
+    public String toString() {
+        return super.toString() + "File to delete = " + fileToDelete;
+    }
 }

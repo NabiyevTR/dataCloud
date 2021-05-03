@@ -63,7 +63,7 @@ public class DataExecutor {
             try {
                 fileManager.changeDir(changeDirMessage.getRelPath());
                 changeDirMessage.setFiles(
-                        fileManager.getFiles("")
+                        fileManager.getFiles()
                 );
                 changeDirMessage.setStatus(DataMessageStatus.OK);
             } catch (NoSuchFileException e) {
@@ -102,7 +102,10 @@ public class DataExecutor {
             FileManager fileManager = getFileManager(message);
             DownloadMessage downloadMessage = (DownloadMessage) message;
             try {
-                fileManager.fileToBytes(downloadMessage.getFileName());
+                downloadMessage.setContent(
+                        fileManager.fileToBytes(downloadMessage.getFileName())
+                );
+
                 downloadMessage.setStatus(DataMessageStatus.OK);
             } catch (IOException | IllegalAccessException e) {
                 //todo handle exception
@@ -118,8 +121,10 @@ public class DataExecutor {
                 RenameMessage renameMessage = (RenameMessage) message;
                 fileManager.rename(
                         renameMessage.getOldName(),
-                        renameMessage.getOldName()
+                        renameMessage.getNewName()
                 );
+                renameMessage.setFiles(fileManager.getFiles());
+                renameMessage.setStatus(DataMessageStatus.OK);
             } catch (IOException e) {
                 // todo handle exception
                 message.setStatus(DataMessageStatus.UNKNOWN_ERROR);

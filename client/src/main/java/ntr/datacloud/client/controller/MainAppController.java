@@ -2,7 +2,9 @@ package ntr.datacloud.client.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -11,22 +13,23 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
+import javafx.stage.Stage;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j;
 import ntr.datacloud.client.model.ClientProperties;
 import ntr.datacloud.common.filemanager.FileEntity;
 import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
 import ntr.datacloud.common.messages.Message;
-import ntr.datacloud.common.messages.data.DataMessageStatus;
-import ntr.datacloud.common.messages.data.GetFilesMessage;
-import ntr.datacloud.common.messages.data.UploadMessage;
+import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.common.messages.service.LogonMessage;
 
-
+@Log4j
 public class MainAppController implements Initializable {
 
     private NettyNetwork network;
@@ -135,11 +138,6 @@ public class MainAppController implements Initializable {
 
     }
 
-    public void send(ActionEvent actionEvent) throws IOException {
-
-
-    }
-
 
     public void upload(ActionEvent event) throws IOException, IllegalAccessException {
 
@@ -151,6 +149,7 @@ public class MainAppController implements Initializable {
                 .builder()
                 .login(properties.getLogin())
                 .password(properties.getPassword())
+                .currentDir(fileManager.getCurrentDir())
                 .fileName(uploadedFile.getName())
                 .content(fileManager.fileToBytes(uploadedFile.getName()))
                 .build()
@@ -167,6 +166,171 @@ public class MainAppController implements Initializable {
     }
 
     public void download(ActionEvent event) {
+
+        Platform.runLater(() -> {
+
+            FileEntity downloadedFile = (FileEntity) serverFileList.getSelectionModel().getSelectedItem();
+            if (downloadedFile == null) return;
+
+            network.sendMsg(DownloadMessage
+                    .builder()
+                    .login(properties.getLogin())
+                    .password(properties.getPassword())
+                    .currentDir(fileManager.getCurrentDir())
+                    .fileName(downloadedFile.getName())
+                    .build());
+
+            DownloadMessage message = (DownloadMessage) network.readMessage();
+
+            try {
+
+                if (message.getStatus() == DataMessageStatus.OK) {
+                    fileManager.bytesToFile(
+                        message.getContent(),
+                        message.getFileName()
+                    );
+                    clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+                }
+            } catch (Exception e) {
+                //todo handle exception
+                e.printStackTrace();
+            }
+
+        });
+    }
+
+
+    public void goToParentDirOnClient(ActionEvent event) {
+        Platform.runLater(() -> {
+            try {
+                if (fileManager.changeDirToParent()) {
+                    clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+                }
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
+            }
+        });
+    }
+
+    public void createDirOnClient(ActionEvent event) {
+
+        Dialog dialog = new Dialog(
+                (Stage) ((Node) event.getSource()).getScene().getWindow(),
+                Dialog.Type.TEXT_INPUT,
+                "Enter new folder name",
+                "Folder: "
+        );
+
+        String newDir = dialog.getText();
+
+        Platform.runLater(() -> {
+            try {
+                fileManager.createDir(newDir);
+                clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void deleteFileFromClient(ActionEvent event) {
+        Platform.runLater(() -> {
+
+            FileEntity fileToDelete = (FileEntity) clientFileList.getSelectionModel().getSelectedItem();
+            if (fileToDelete == null) return;
+            try {
+                fileManager.delete(fileToDelete.getName());
+                clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+            } catch (Exception e) {
+                //todo handle exception;
+            }
+
+
+
+        });
+    }
+
+    public void RenameFileOnClient(ActionEvent event) {
+
+            FileEntity file = (FileEntity) clientFileList.getSelectionModel().getSelectedItem();
+            if (file == null) return;
+
+
+                Dialog dialog = new Dialog(
+                        (Stage) ((Node) event.getSource()).getScene().getWindow(),
+                        Dialog.Type.TEXT_INPUT,
+                        "Enter new file or folder name",
+                        "New name: "
+                );
+
+                String newName = dialog.getText();
+
+        Platform.runLater(() -> {
+            try {
+               fileManager.rename(file.getName(), newName);
+                clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+
+            } catch (Exception e) {
+                //todo handle exception
+            }
+        });
+    }
+
+    public void goToParentDirOnServer(ActionEvent event) {
+        Platform.runLater(() -> {
+
+        });
+    }
+
+    public void createDirOnServer(ActionEvent event) {
+        Platform.runLater(() -> {
+
+        });
+    }
+
+    public void deleteFileFromServer(ActionEvent event) {
+        Platform.runLater(() -> {
+
+        });
+    }
+
+    public void renameFileOnServer(ActionEvent event) {
+
+            FileEntity file = (FileEntity) serverFileList.getSelectionModel().getSelectedItem();
+            if (file == null) return;
+
+            Dialog dialog = new Dialog(
+                    (Stage) ((Node) event.getSource()).getScene().getWindow(),
+                    Dialog.Type.TEXT_INPUT,
+                    "Enter new file or folder name",
+                    "New name: "
+            );
+
+            String newName = dialog.getText();
+
+        Platform.runLater(() -> {
+
+            network.sendMsg(RenameMessage
+                    .builder()
+                    .login(properties.getLogin())
+                    .password(properties.getPassword())
+                    .currentDir(fileManager.getCurrentDir())
+                    .oldName(file.getName())
+                    .newName(newName)
+                    .build());
+
+            RenameMessage message = (RenameMessage)network.readMessage();
+
+            if (message.getStatus() == DataMessageStatus.OK) {
+                serverFileList.setItems(FXCollections.observableList(message.getFiles()));
+            }
+
+
+
+        });
     }
 }
 

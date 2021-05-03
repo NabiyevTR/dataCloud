@@ -141,10 +141,6 @@ public class AuthController {
             Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
             stage.hide();
             stage.setScene(mainAppScene);
-
-
-            /*MainAppController controller = loader.getController();
-            controller.setStage(stage);*/
             stage.show();
         } catch (Exception e) {
             log.error("Error during changing window: ", e);
