@@ -10,13 +10,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
-@AllArgsConstructor
+@NoArgsConstructor
 public class Server {
-    private final int port;
+    private ServerProperties properties = ServerProperties.getInstance();
+    private final int port = properties.getPort();
 
     public void run() {
         EventLoopGroup auth = new NioEventLoopGroup();
@@ -33,7 +34,7 @@ public class Server {
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
                                     new ServiceMessageHandler(),
-                                    new MessageHandler()
+                                    new DataMessageHandler()
                             );
                         }
                     });
@@ -55,18 +56,6 @@ public class Server {
 
 
     public static void main(String[] args) {
-        //Default port
-        int port = 8189;
-
-        if (args.length > 0) {
-            try {
-                port = Integer.parseInt(args[0]);
-            } catch (NumberFormatException e) {
-                log.warn("Invalid port number. Using default port " + port + ".");
-            }
-
-        }
-
-        new Server(port).run();
+            new Server().run();
     }
 }

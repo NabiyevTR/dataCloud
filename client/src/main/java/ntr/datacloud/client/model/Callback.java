@@ -1,4 +1,4 @@
-package ntr.datacloud.client;
+package ntr.datacloud.client.model;
 
 import ntr.datacloud.common.messages.Message;
 
