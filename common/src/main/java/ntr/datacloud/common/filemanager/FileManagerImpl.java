@@ -4,15 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,7 +16,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class FileManagerImpl implements FileManager {
 
-    private String rootDir;
+    private final String rootDir;
 
     private String currentDir;
 
@@ -42,8 +38,8 @@ public class FileManagerImpl implements FileManager {
 
         ArrayList<FileEntity> files = new ArrayList<>();
 
-        // Get directories
-        Stream<Path> filesStream = Files.walk(path);
+        // Get directories and sort by type and by name
+        Stream<Path> filesStream = Files.walk(path, 1);
         files.addAll(
                 filesStream
                         .filter(e -> !e.equals(path))
@@ -61,20 +57,18 @@ public class FileManagerImpl implements FileManager {
         return getFiles("");
     }
 
-
     @Override
     public boolean changeDir(String relPath) throws IllegalAccessException, NoSuchFileException {
         Path path = Paths.get(rootDir, currentDir, relPath).normalize();
-
 
         checkAccess(path);
 
         if (Files.exists(path)) {
             currentDir = Paths.get(rootDir).relativize(path).toString();
-            log.info("Current dir: " + currentDir);
+            log.debug("Current dir: " + currentDir);
             return true;
         } else {
-            log.info(String.format("Directory %s does not exist", path.toString()));
+            log.debug(String.format("Directory %s does not exist", path.toString()));
             throw new NoSuchFileException(String.format("Directory %s does not exist", path.toString()));
         }
     }
@@ -86,7 +80,6 @@ public class FileManagerImpl implements FileManager {
 
     @Override
     public boolean rename(String oldName, String newName) throws IOException, IllegalAccessException {
-
 
         Path path = Paths.get(rootDir, currentDir, oldName).normalize();
 
@@ -112,45 +105,10 @@ public class FileManagerImpl implements FileManager {
         }
     }
 
-    private boolean deleteDir(File dirToDelete) {
-        File[] allContents = dirToDelete.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDir(file);
-            }
-        }
-        return dirToDelete.delete();
-    }
+
+    //todo can be shorter?
 
 
-    // cat - print file in console
-    @Override
-    public String readFile(String relPath) {
-        throw new UnsupportedOperationException();
-    }
-
-    // touch -  create file
-    @Override
-    public boolean createFile(String relPath) {
-        /*try {
-            Path path = Paths.get(rootDir, currentDir, relPath).normalize();
-
-            if (isIllegalAccess(path)) {
-                log.warn("Illegal access attempt!");
-                return false;
-            }
-
-            Files.createFile(path);
-            log.info("File was created successfully!");
-            return true;
-        } catch (IOException e) {
-            log.error("Failed to create file" + relPath + ": ", e);
-            return false;
-        }*/
-        throw new UnsupportedOperationException();
-    }
-
-    // mkdir - create dir
     @Override
     public boolean createDir(String relPath) throws IOException, IllegalAccessException {
 
@@ -162,15 +120,6 @@ public class FileManagerImpl implements FileManager {
         log.info("Directory was created successfully!");
         return true;
 
-    }
-
-    private void checkAccess(Path path) throws IllegalAccessException {
-
-        if (rootDir.equals(path.toString())) return;
-        if (rootDir.startsWith(path.toString())) {
-            log.warn("Illegal access attempt!");
-            throw new IllegalAccessException();
-        }
     }
 
     @Override
@@ -193,6 +142,29 @@ public class FileManagerImpl implements FileManager {
         }
         // todo catch
     }
+
+
+
+    private void checkAccess(Path path) throws IllegalAccessException {
+
+        if (rootDir.equals(path.toString())) return;
+        if (rootDir.startsWith(path.toString())) {
+            log.warn("Illegal access attempt!");
+            throw new IllegalAccessException();
+        }
+    }
+
+    private boolean deleteDir(File dirToDelete) {
+        File[] allContents = dirToDelete.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDir(file);
+            }
+        }
+        return dirToDelete.delete();
+    }
+
+
 
 
 }

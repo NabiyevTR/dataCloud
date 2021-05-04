@@ -18,6 +18,9 @@ public class ServerProperties {
     private final Path rootDir = Paths.get("G:\\Мой диск\\Программирование\\dataCloud\\test\\server");
     @Getter
     private final int port = 8189;
+    @Getter
+    private final int maxMessageSize = 10 * 1024 * 1024;
+
 
     public static ServerProperties getInstance() {
         if (INSTANCE == null) {

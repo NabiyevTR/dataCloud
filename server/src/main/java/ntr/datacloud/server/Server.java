@@ -31,10 +31,11 @@ public class Server {
                         @Override
                         protected void initChannel(SocketChannel channel) throws Exception {
                             channel.pipeline().addLast(
-                                    new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
+                                    new ObjectDecoder(
+                                            properties.getMaxMessageSize(),
+                                            ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new ServiceMessageHandler(),
-                                    new DataMessageHandler()
+                                    new MessageHandler()
                             );
                         }
                     });

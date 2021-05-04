@@ -89,6 +89,7 @@ public class DataExecutor {
                 fileManager.bytesToFile(
                         uploadMessage.getContent(),
                         uploadMessage.getFileName());
+                uploadMessage.setContent(null);
                 uploadMessage.setFiles(fileManager.getFiles());
                 uploadMessage.setStatus(DataMessageStatus.OK);
             } catch (IOException | IllegalAccessException e) {
