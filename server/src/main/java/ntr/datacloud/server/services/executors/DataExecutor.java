@@ -2,6 +2,7 @@ package ntr.datacloud.server.services.executors;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
@@ -15,14 +16,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 @Log4j
 public class DataExecutor {
 
     private static final ServerProperties properties = ServerProperties.getInstance();
-    // private final String serverRootDir = properties.getRootDir().toString();
-
-
+    private final FileManager fileManager;
     private static final Map<String, Consumer<DataMessage>> executors =
             new HashMap<>();
 
@@ -34,7 +33,6 @@ public class DataExecutor {
         executors.put(RenameMessage.class.getName(), renameExecutor());
         executors.put(UploadMessage.class.getName(), uploadExecutor());
         executors.put(ChangeDirMessage.class.getName(), changeDirExecutor());
-
     }
 
     public static boolean execute(DataMessage message) {

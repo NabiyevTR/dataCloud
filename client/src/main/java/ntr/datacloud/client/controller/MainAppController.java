@@ -21,6 +21,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.SneakyThrows;
@@ -104,9 +105,13 @@ public class MainAppController implements Initializable {
                 e.printStackTrace();
             }
 
+            clientFileIconCol.setStyle("-fx-alignment: CENTER;");
             clientFileIconCol.setCellValueFactory(iconValueFactory);
 
+
+
             clientFileListNameCol.setCellValueFactory(new PropertyValueFactory<FileEntity, String>("name"));
+
 
             clientFileListSizeCol.setCellValueFactory(new PropertyValueFactory<FileEntity, String>("size"));
 
@@ -159,6 +164,7 @@ public class MainAppController implements Initializable {
                             ((GetFilesMessage) message).getFiles()
                     );
 
+                    serverFileIconCol.setStyle("-fx-alignment: CENTER;");
                     serverFileIconCol.setCellValueFactory(iconValueFactory);
 
                     serverFileListNameCol.setCellValueFactory(
@@ -426,6 +432,9 @@ public class MainAppController implements Initializable {
 
     public void onKeyPressed(KeyEvent keyEvent) {
         //todo delete error
+    }
+
+    public void onLogOut(MouseEvent event) {
     }
 }
 

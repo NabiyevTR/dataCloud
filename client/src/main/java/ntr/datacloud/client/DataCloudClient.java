@@ -5,12 +5,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
-/**
- * JavaFX App
- */
+
 public class DataCloudClient extends Application {
 
     private static Scene scene;
@@ -20,6 +19,8 @@ public class DataCloudClient extends Application {
     public void start(Stage stage) throws IOException {
         scene = new Scene(loadFXML("auth"), 640, 480);
         stage.setScene(scene);
+        stage.setResizable(false);
+        stage.initStyle(StageStyle.UNDECORATED);
         stage.show();
     }
 

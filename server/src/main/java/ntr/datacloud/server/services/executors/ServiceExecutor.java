@@ -7,6 +7,7 @@ import ntr.datacloud.common.messages.service.LogonMessage;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.service.RegMessage;
 import ntr.datacloud.common.messages.service.ServiceMessageStatus;
+import ntr.datacloud.server.ConnectedClients;
 import ntr.datacloud.server.services.auth.AuthService;
 import ntr.datacloud.server.services.auth.JDBCAuthService;
 
@@ -23,6 +24,8 @@ public class ServiceExecutor {
 
     private static final Map<String, Consumer<Message>> executors =
             new HashMap<>();
+
+    private static ConnectedClients clients = ConnectedClients.getInstance();
 
     static {
         executors.put(LogonMessage.class.getName(), logonExecutor());
@@ -45,6 +48,7 @@ public class ServiceExecutor {
             LogonMessage logonMessage = (LogonMessage) message;
             if (authService.userExists(logonMessage.getLogin(), logonMessage.getPassword())) {
                 logonMessage.setStatus(ServiceMessageStatus.OK);
+
             } else {
                 logonMessage.setStatus(ServiceMessageStatus.INCORRECT_PASSWORD_OR_LOGIN);
             }

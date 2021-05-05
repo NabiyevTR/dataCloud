@@ -7,8 +7,9 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.extern.log4j.Log4j;
@@ -20,13 +21,18 @@ import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.service.RegMessage;
 import ntr.datacloud.common.messages.service.ServiceMessageStatus;
 
+
 @Log4j
-public class AuthController {
+public class AuthController  {
 
 
     private NettyNetwork network = NettyNetwork.getInstance();
     private ClientProperties properties = ClientProperties.getInstance();
+    private double xOffset = 0;
+    private double yOffset = 0;
 
+    @FXML
+    private VBox authPanel;
 
     @FXML
     private VBox regPanel;
@@ -137,15 +143,39 @@ public class AuthController {
             loader.setLocation(
                     DataCloudClient.class.getResource("primary.fxml"));
             VBox root = loader.load();
-            Scene mainAppScene = new Scene(root);
-            Stage stage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-            stage.hide();
-            stage.setScene(mainAppScene);
-            stage.show();
+
+            Stage authStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
+            authStage.hide();
+
+            Stage mainStage = new Stage();
+            Scene mainAppScene = new Scene(root, 1000, 600);
+
+            mainStage.setResizable(true);
+            mainStage.getIcons().add(new Image("/images/cloud.png"));
+            mainStage.setScene(mainAppScene);
+
+            mainStage.show();
         } catch (Exception e) {
             log.error("Error during changing window: ", e);
         }
 
 
+    }
+
+    public void onExitClicked(MouseEvent mouseEvent) {
+        System.exit(0);
+    }
+
+
+    public void onMouseDragged(MouseEvent event) {
+        Stage  stage = (Stage)authPanel.getScene().getWindow();
+        stage.setX(event.getScreenX() - xOffset);
+        stage.setY(event.getScreenY() - yOffset);
+        }
+
+
+    public void onMousePressed(MouseEvent event) {
+        xOffset = event.getSceneX();
+        yOffset = event.getSceneY();
     }
 }

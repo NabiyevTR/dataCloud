@@ -41,6 +41,7 @@ public class Dialog {
         stage = new Stage();
         stage.setScene(scene);
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
 
         stage.initOwner(primaryStage);
 
