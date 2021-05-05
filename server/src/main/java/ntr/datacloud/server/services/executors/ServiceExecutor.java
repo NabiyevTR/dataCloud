@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.messages.service.LogonMessage;
 import ntr.datacloud.common.messages.Message;
+import ntr.datacloud.common.messages.service.LogoutMessage;
 import ntr.datacloud.common.messages.service.RegMessage;
 import ntr.datacloud.common.messages.service.ServiceMessageStatus;
 import ntr.datacloud.server.ConnectedClients;
@@ -29,6 +30,7 @@ public class ServiceExecutor {
 
     static {
         executors.put(LogonMessage.class.getName(), logonExecutor());
+        executors.put(LogoutMessage.class.getName(), logoutExecutor());
         executors.put(RegMessage.class.getName(), regExecutor());
     }
 
@@ -52,6 +54,13 @@ public class ServiceExecutor {
             } else {
                 logonMessage.setStatus(ServiceMessageStatus.INCORRECT_PASSWORD_OR_LOGIN);
             }
+        };
+    }
+
+    private static Consumer<Message> logoutExecutor() {
+        return message -> {
+            LogoutMessage logonMessage = (LogoutMessage) message;
+            logonMessage.setStatus(ServiceMessageStatus.OK);
         };
     }
 

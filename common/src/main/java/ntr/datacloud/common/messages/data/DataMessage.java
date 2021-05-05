@@ -23,7 +23,8 @@ public class DataMessage extends Message {
 
     @Override
     public String toString() {
-        return  String.format("%s: status = %s login = %s; pass = %s,",
-                getClass().getSimpleName() , status, login, password);
+        return  String.format("%s: status = %s",
+                getClass().getSimpleName(),
+                status);
     }
 }

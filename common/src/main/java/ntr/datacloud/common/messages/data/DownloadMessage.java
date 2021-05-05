@@ -14,4 +14,10 @@ public class DownloadMessage extends DataMessage {
     private int fileSize;
     private byte[] content;
 
+    @Override
+    public String toString() {
+        return super.toString() + " " +
+                String.format("Download file %s",
+                        fileName);
+    }
 }

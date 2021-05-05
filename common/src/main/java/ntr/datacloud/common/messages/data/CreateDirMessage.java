@@ -11,4 +11,10 @@ public class CreateDirMessage extends DataMessage{
 
     private String newDir;
 
+    @Override
+    public String toString() {
+        return super.toString() + " " +
+                String.format("Create ne dir %s",
+                       newDir);
+    }
 }

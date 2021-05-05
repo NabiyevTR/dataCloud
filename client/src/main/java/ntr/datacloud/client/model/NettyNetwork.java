@@ -7,6 +7,7 @@ import ntr.datacloud.common.messages.Message;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.*;
 
 @Log4j
 public class NettyNetwork {
@@ -74,7 +75,7 @@ public class NettyNetwork {
             );
             //todo override toString() in Message
             return true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(
                     String.format("Client failed to send message to server %s/%d: ", host, port), e
             );
@@ -83,17 +84,22 @@ public class NettyNetwork {
     }
 
     public Message readMessage() {
+
+        Future<Message> future = new FutureTask<>(
+                () -> (Message) in.readObject());
+
+
         try {
-            Message message = (Message) in.readObject();
-            log.debug(
-                    String.format("Client receive message to server %s/%d: %s", host, port, message)
-            );
-            return message;
-        } catch (Exception e) {
-            log.error(
-                    String.format("Client failed to receive message from server %s/%d: ", host, port), e
-            );
+            return future.get(ClientProperties.getInstance().getTimeOut(), TimeUnit.MILLISECONDS);
+
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+
+            log.error("Cannot connect to server: ", e);
+            return Message.builder()
+                    .errorText(e.getMessage())
+                    .build();
         }
-        return null;
+
+
     }
 }

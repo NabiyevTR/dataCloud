@@ -1,16 +1,8 @@
 package ntr.datacloud.common.messages.data;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import ntr.datacloud.common.filemanager.FileEntity;
-import ntr.datacloud.common.messages.service.ServiceMessage;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @SuperBuilder
@@ -28,10 +20,7 @@ public class GetFilesMessage extends DataMessage {
                     getFiles()
                             .stream()
                             .map(f -> f.getName())
-                            .collect(Collectors.joining("\n"))
-                    + "\n";
+                            .collect(Collectors.joining("\n"));
         }
-
-
     }
 }

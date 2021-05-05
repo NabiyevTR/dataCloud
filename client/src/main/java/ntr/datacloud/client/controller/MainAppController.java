@@ -13,8 +13,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -22,17 +24,22 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j;
+import ntr.datacloud.client.DataCloudClient;
 import ntr.datacloud.client.model.ClientProperties;
+import ntr.datacloud.client.stage.AuthStage;
+import ntr.datacloud.client.stage.MainStage;
 import ntr.datacloud.common.filemanager.FileEntity;
 import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.*;
+import ntr.datacloud.common.messages.service.LogoutMessage;
 
 import javax.swing.plaf.metal.MetalIconFactory;
 
@@ -109,7 +116,6 @@ public class MainAppController implements Initializable {
             clientFileIconCol.setCellValueFactory(iconValueFactory);
 
 
-
             clientFileListNameCol.setCellValueFactory(new PropertyValueFactory<FileEntity, String>("name"));
 
 
@@ -149,37 +155,29 @@ public class MainAppController implements Initializable {
             serverFileList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
             network.sendMsg(GetFilesMessage.builder()
-                    .login(properties.getLogin())
-                    .password(properties.getPassword())
                     .build());
 
 
-            Message message = network.readMessage();
+            GetFilesMessage message = (GetFilesMessage) network.readMessage();
 
-            if (message instanceof GetFilesMessage) {
 
-                GetFilesMessage getFilesMessage = (GetFilesMessage) message;
-                if (getFilesMessage.getStatus() == DataMessageStatus.OK) {
-                    ObservableList<FileEntity> serverFiles = FXCollections.observableList(
-                            ((GetFilesMessage) message).getFiles()
-                    );
+            if (message.getStatus() == DataMessageStatus.OK) {
+                ObservableList<FileEntity> serverFiles = FXCollections.observableList(
+                        message.getFiles()
+                );
 
-                    serverFileIconCol.setStyle("-fx-alignment: CENTER;");
-                    serverFileIconCol.setCellValueFactory(iconValueFactory);
+                serverFileIconCol.setStyle("-fx-alignment: CENTER;");
+                serverFileIconCol.setCellValueFactory(iconValueFactory);
 
-                    serverFileListNameCol.setCellValueFactory(
-                            new PropertyValueFactory<FileEntity, String>("name")
-                    );
+                serverFileListNameCol.setCellValueFactory(
+                        new PropertyValueFactory<FileEntity, String>("name")
+                );
 
-                    serverFileListSizeCol.setCellValueFactory(
-                            new PropertyValueFactory<FileEntity, String>("size")
-                    );
+                serverFileListSizeCol.setCellValueFactory(
+                        new PropertyValueFactory<FileEntity, String>("size")
+                );
 
-                    serverFileList.setItems(serverFiles);
-
-                } else {
-                    //todo notify user
-                }
+                serverFileList.setItems(serverFiles);
 
 
             } else {
@@ -202,9 +200,6 @@ public class MainAppController implements Initializable {
 
             try {
                 network.sendMsg(UploadMessage.builder()
-                        .login(properties.getLogin())
-                        .password(properties.getPassword())
-                        .currentDir(fileManager.getCurrentDir())
                         .fileName(uploadedFile.getName())
                         .content(fileManager.fileToBytes(uploadedFile.getName()))
                         .build()
@@ -232,9 +227,6 @@ public class MainAppController implements Initializable {
 
             network.sendMsg(DownloadMessage
                     .builder()
-                    .login(properties.getLogin())
-                    .password(properties.getPassword())
-                    .currentDir(fileManager.getCurrentDir())
                     .fileName(downloadedFile.getName())
                     .build());
 
@@ -356,9 +348,6 @@ public class MainAppController implements Initializable {
 
         Platform.runLater(() -> {
             network.sendMsg(CreateDirMessage.builder()
-                    .login(properties.getLogin())
-                    .password(properties.getPassword())
-                    .currentDir(fileManager.getCurrentDir())
                     .newDir(newFolderName)
                     .build());
 
@@ -370,17 +359,14 @@ public class MainAppController implements Initializable {
     }
 
     public void deleteFileFromServer(ActionEvent event) {
+
         FileEntity file = (FileEntity) serverFileList.getSelectionModel().getSelectedItem();
         if (file == null) return;
 
         Platform.runLater(() -> {
             network.sendMsg(DeleteMessage.builder()
-                    .login(properties.getLogin())
-                    .password(properties.getPassword())
-                    .currentDir(fileManager.getCurrentDir())
                     .fileToDelete(file.getName())
                     .build());
-
 
             DeleteMessage message = (DeleteMessage) network.readMessage();
 
@@ -407,9 +393,6 @@ public class MainAppController implements Initializable {
 
             network.sendMsg(RenameMessage
                     .builder()
-                    .login(properties.getLogin())
-                    .password(properties.getPassword())
-                    .currentDir(fileManager.getCurrentDir())
                     .oldName(file.getName())
                     .newName(newName)
                     .build());
@@ -435,6 +418,29 @@ public class MainAppController implements Initializable {
     }
 
     public void onLogOut(MouseEvent event) {
+        Platform.runLater(() -> {
+
+            network.sendMsg(LogoutMessage.builder()
+                    .build());
+
+            LogoutMessage message = (LogoutMessage) network.readMessage();
+
+
+        });
+
+
+        try {
+
+            AuthStage.getStage().show();
+            MainStage.getStage().hide();
+        } catch (Exception e) {
+            log.error("Error during changing window: ", e);
+        }
+
     }
+
+
 }
+
+
 

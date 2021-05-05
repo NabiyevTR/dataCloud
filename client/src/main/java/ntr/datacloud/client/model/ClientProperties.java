@@ -26,6 +26,8 @@ public class ClientProperties {
     private Path rootDir = Paths.get("G:\\Мой диск\\Программирование\\dataCloud\\test\\client");
     private String login;
     private String password;
+    private final int timeOut = 3000; //ms
+
 
 
 }

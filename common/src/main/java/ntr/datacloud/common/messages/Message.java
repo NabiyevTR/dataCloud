@@ -9,11 +9,7 @@ import java.io.Serializable;
 @Getter
 public class Message implements Serializable {
 
-
-    protected final String login;
-    protected final String password;
     @Setter
     protected String errorText;
-
 
 }

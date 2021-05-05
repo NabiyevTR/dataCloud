@@ -21,13 +21,20 @@ public class ConnectedClients {
         return INSTANCE;
     }
 
-
     public boolean put(Channel channel, DataExecutor executor) {
         if (!executors.containsKey(channel)) {
             executors.put(channel, executor);
             return true;
         }
         return false;
+    }
+
+    public boolean contains(Channel channel) {
+        return executors.containsKey(channel);
+    }
+
+    public DataExecutor getExecutor(Channel channel) {
+        return executors.get(channel);
     }
 
     public void remove(Channel channel) {

@@ -7,12 +7,7 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Getter
-public class LogonMessage extends ServiceMessage {
+public class LogonMessage extends AuthMessage {
 
-    @Override
-    public String toString() {
-        return  String.format("%s: status = %s login = %s; pass = %s,",
-                getClass().getSimpleName() , status, login, password);
-    }
 
 }

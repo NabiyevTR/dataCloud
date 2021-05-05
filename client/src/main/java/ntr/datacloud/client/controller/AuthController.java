@@ -2,32 +2,31 @@ package ntr.datacloud.client.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.extern.log4j.Log4j;
-import ntr.datacloud.client.DataCloudClient;
 import ntr.datacloud.client.model.ClientProperties;
 import ntr.datacloud.client.model.NettyNetwork;
-import ntr.datacloud.common.messages.service.LogonMessage;
+import ntr.datacloud.client.stage.AuthStage;
+import ntr.datacloud.client.stage.MainStage;
 import ntr.datacloud.common.messages.Message;
+import ntr.datacloud.common.messages.service.AuthMessage;
+import ntr.datacloud.common.messages.service.LogonMessage;
 import ntr.datacloud.common.messages.service.RegMessage;
 import ntr.datacloud.common.messages.service.ServiceMessageStatus;
 
+import java.io.IOException;
+
 
 @Log4j
-public class AuthController  {
+public class AuthController {
 
-
-    private NettyNetwork network = NettyNetwork.getInstance();
-    private ClientProperties properties = ClientProperties.getInstance();
+    private final NettyNetwork network = NettyNetwork.getInstance();
+    private final ClientProperties properties = ClientProperties.getInstance();
     private double xOffset = 0;
     private double yOffset = 0;
 
@@ -55,127 +54,192 @@ public class AuthController  {
     @FXML
     private Label logonError;
 
-
-    public void backToLogonPanel(ActionEvent actionEvent) {
+    @FXML
+    private void backToLogonPanel(ActionEvent actionEvent) {
         regPanel.setVisible(false);
         logonPanel.setVisible(true);
+        resetFields();
     }
 
-    public void toRegPanel(ActionEvent actionEvent) {
+    @FXML
+    private void toRegPanel(ActionEvent actionEvent) {
         regPanel.setVisible(true);
         logonPanel.setVisible(false);
+        resetFields();
     }
 
-    public void regUser(ActionEvent actionEvent) {
+    @FXML
+    private void regUser(ActionEvent actionEvent) {
         String login = regLogin.getText().toLowerCase().trim();
         String password = regPass.getText().trim();
         String passwordRepeat = regPassRepeat.getText().trim();
 
-        //toDo check credentials
+        if (!password.equals(passwordRepeat)) {
+            regError.setText("Password mismatch");
+            regError.setVisible(true);
+            return;
+        }
 
-        network.sendMsg(RegMessage
+        //todo get it from server
+        String regularExpressionLogin = "^[a-z0-9_-]{3,16}$";
+
+        if (!regLogin.getText().matches(regularExpressionLogin)) {
+            regError.setText("Not valid login");
+            regError.setVisible(true);
+            return;
+        }
+
+        //todo get it from server
+        String regularExpressionPass = "^[a-z0-9_-]{6,16}$";
+
+        if (!regPass.getText().matches(regularExpressionPass)) {
+            regError.setText("Not valid login");
+            regError.setVisible(true);
+            return;
+        }
+
+        if (network.sendMsg(RegMessage
                 .builder()
                 .login(login)
                 .password(password)
-                .build());
+                .build())) {
 
-        //todo set timeout
-        Message message = network.readMessage();
-        if (message instanceof RegMessage) {
-
-            RegMessage regMessage = (RegMessage) message;
-
-            if (regMessage.getStatus() == ServiceMessageStatus.OK) {
-                regError.setVisible(false);
-
-                //duplicated code (in Logon user)
-                // Save credentials after successful authentication in client properties
-                properties.setLogin(message.getLogin());
-                properties.setPassword(message.getPassword());
-
-                goToMainAppWindow(actionEvent);
-
-            } else {
-                regError.setText(regMessage.getStatus().getStatusText());
-                regError.setVisible(true);
-            }
+            AuthMessage message = (AuthMessage) network.readMessage();
+            handleAuthMessage(message);
+        } else {
+            showError("Cannot connect to server");
         }
+
+
     }
 
-    public void logonUser(ActionEvent actionEvent) {
+    @FXML
+    private void logonUser(ActionEvent actionEvent) {
         String login = logonLogin.getText().toLowerCase().trim();
         String password = logonPass.getText().trim();
 
-        //toDo check credentials
+        if (logonLogin.getText().isEmpty() && logonPass.getText().isEmpty()) {
+            logonError.setText("Login and pass field is empty");
+            logonError.setVisible(true);
+            return;
+        }
 
-        network.sendMsg(LogonMessage
+        if (logonLogin.getText().isEmpty()) {
+            logonError.setText("Login field is empty");
+            logonError.setVisible(true);
+            return;
+        }
+
+        if (logonPass.getText().isEmpty()) {
+            logonError.setText("Pass field is empty");
+            logonError.setVisible(true);
+            return;
+        }
+
+        if (network.sendMsg(LogonMessage
                 .builder()
                 .login(login)
                 .password(password)
-                .build());
-
-        //todo set timeout
-        Message message = network.readMessage();
-
-        if (message instanceof LogonMessage) {
-            LogonMessage logonMessage = (LogonMessage) message;
-            if (logonMessage.getStatus() == ServiceMessageStatus.OK) {
-                logonError.setVisible(false);
-
-                // Save credentials after successful authentication in client properties
-                properties.setLogin(message.getLogin());
-                properties.setPassword(message.getPassword());
-
-                goToMainAppWindow(actionEvent);
-
-            } else {
-                logonError.setText(logonMessage.getStatus().getStatusText());
-                logonError.setVisible(true);
-            }
-        }
-
-
-    }
-
-    private void goToMainAppWindow(ActionEvent actionEvent) {
-        try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(
-                    DataCloudClient.class.getResource("primary.fxml"));
-            VBox root = loader.load();
-
-            Stage authStage = (Stage) ((Node) actionEvent.getSource()).getScene().getWindow();
-            authStage.hide();
-
-            Stage mainStage = new Stage();
-            Scene mainAppScene = new Scene(root, 1000, 600);
-
-            mainStage.setResizable(true);
-            mainStage.getIcons().add(new Image("/images/cloud.png"));
-            mainStage.setScene(mainAppScene);
-
-            mainStage.show();
-        } catch (Exception e) {
-            log.error("Error during changing window: ", e);
+                .build())) {
+            Message message = network.readMessage();
+            handleAuthMessage(message);
+        } else {
+            showError("Cannot connect to server");
         }
 
 
     }
 
     public void onExitClicked(MouseEvent mouseEvent) {
+        try {
+            AuthStage.getStage().close();
+        } catch (IOException e) {
+            log.error("Cannot close AuthStage: ", e);
+        }
+        try {
+            MainStage.getStage().close();
+        } catch (IOException e) {
+            log.error("Cannot close MainStage: ", e);
+        }
         System.exit(0);
     }
 
-
     public void onMouseDragged(MouseEvent event) {
-        Stage  stage = (Stage)authPanel.getScene().getWindow();
+        Stage stage = (Stage) authPanel.getScene().getWindow();
         stage.setX(event.getScreenX() - xOffset);
         stage.setY(event.getScreenY() - yOffset);
-        }
+    }
 
 
     public void onMousePressed(MouseEvent event) {
         xOffset = event.getSceneX();
         yOffset = event.getSceneY();
     }
+
+
+    private void goToMainStage() {
+        logonLogin.setText("");
+        logonPass.setText("");
+        regLogin.setText("");
+        regPass.setText("");
+        regPass.setText("");
+        regPanel.setVisible(false);
+        authPanel.setVisible(true);
+
+        try {
+            MainStage.getStage().show();
+            AuthStage.getStage().hide();
+        } catch (Exception e) {
+            log.error("Error during changing window: ", e);
+        }
+    }
+
+
+    private void resetFields() {
+        regError.setVisible(false);
+        regPass.setText("");
+        regLogin.setText("");
+        regPassRepeat.setText("");
+
+        logonError.setVisible(false);
+        logonLogin.setText("");
+        logonPass.setText("");
+
+    }
+
+    private void handleAuthMessage(Message message) {
+
+        if (message instanceof AuthMessage) {
+            AuthMessage authMessage = (AuthMessage) message;
+
+            if (authMessage.getStatus() == ServiceMessageStatus.OK) {
+
+                // Save credentials after successful authentication in client properties
+                properties.setLogin(authMessage.getLogin());
+                properties.setPassword(authMessage.getPassword());
+                // Clear all fields
+                resetFields();
+                goToMainStage();
+
+            } else {
+                // show error
+                showError(authMessage.getErrorText());
+            }
+
+
+        } else {
+            showError(message.getErrorText());
+        }
+
+
+    }
+
+    private void showError(String errorText) {
+        logonError.setText(errorText);
+        logonError.setVisible(true);
+        regError.setText(errorText);
+        regError.setVisible(true);
+    }
+
+
 }

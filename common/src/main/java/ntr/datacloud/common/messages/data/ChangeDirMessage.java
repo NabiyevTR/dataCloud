@@ -7,7 +7,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public class ChangeDirMessage extends DataMessage{
+public class ChangeDirMessage extends DataMessage {
     private String relPath;
 
+    @Override
+    public String toString() {
+        return super.toString() + " " +
+                String.format("Change dir to %s",
+                        relPath);
+    }
 }

@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import ntr.datacloud.client.stage.AuthStage;
 
 import java.io.IOException;
 
@@ -17,22 +18,23 @@ public class DataCloudClient extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("auth"), 640, 480);
+        AuthStage.getStage().show();
+       /* scene = new Scene(loadFXML("auth"), 640, 480);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.initStyle(StageStyle.UNDECORATED);
-        stage.show();
+        stage.show();*/
     }
 
     static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
+     //   scene.setRoot(loadFXML(fxml));
     }
 
-    private static Parent loadFXML(String fxml) throws IOException {
+ /*   private static Parent loadFXML(String fxml) throws IOException {
 
-        FXMLLoader fxmlLoader = new FXMLLoader(DataCloudClient.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
-    }
+       // FXMLLoader fxmlLoader = new FXMLLoader(DataCloudClient.class.getResource(fxml + ".fxml"));
+      //  return fxmlLoader.load();
+    }*/
 
     public static void main(String[] args) {
         launch();
