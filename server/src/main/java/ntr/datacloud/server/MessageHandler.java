@@ -8,12 +8,15 @@ import ntr.datacloud.common.filemanager.FileManagerImpl;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.DataMessage;
 import ntr.datacloud.common.messages.data.DataMessageStatus;
+import ntr.datacloud.common.messages.data.DownloadMessage;
 import ntr.datacloud.common.messages.service.*;
 import ntr.datacloud.server.services.executors.DataExecutor;
 import ntr.datacloud.server.services.executors.ServiceExecutor;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static ntr.datacloud.server.services.helpers.Helper.sizeof;
 
@@ -34,49 +37,91 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
                         message)
         );
 
+        if (message instanceof DownloadMessage) {
+            handleDownloadMessage(ctx, (DownloadMessage) message);
+            return;
+        }
+
         if (message instanceof DataMessage) {
+            handleDataMessage(ctx, (DataMessage) message);
+            return;
+        }
 
-            DataMessage dataMessage = (DataMessage) message;
+        if (message instanceof ServiceMessage) {
+            handleServiceMessage(ctx, message);
+            return;
+        }
+    }
 
-            // che
-            if (clients.contains(ctx.channel())) {
-                clients.getExecutor(ctx.channel()).execute(dataMessage);
-
-            } else {
-                dataMessage.setStatus(DataMessageStatus.ACCESS_DENIED);
-            }
-
-
-        } else if (message instanceof ServiceMessage) {
-
-            ServiceMessage serviceMessage = (ServiceMessage) message;
-            ServiceExecutor.execute(serviceMessage);
-
-            // add client to list after successful authorization
-            if (serviceMessage instanceof AuthMessage
-                    && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
-                if (!addClient(ctx.channel(), (AuthMessage)serviceMessage)) {
-                    //User is on the client connected list but not authenticated
-                    serviceMessage.setStatus(ServiceMessageStatus.USER_IS_NOT_IN_CONNECTED_CLIENT_LIST);
-
-                } else {
-                    log.info(
-                            String.format("Client %s connected.",
-                                    ctx.channel().remoteAddress())
-                    );
+    private void handleDownloadMessage(ChannelHandlerContext ctx, DownloadMessage message) throws IOException {
+        if (clients.contains(ctx.channel())) {
+            DataExecutor dataExecutor = clients.getExecutor(ctx.channel());
+            List<DownloadMessage> messages = dataExecutor.executeDownload(message);
+            messages.forEach(msg -> {
+                try {
+                    sendMessage(ctx, msg);
+                } catch (IOException e) {
+                   log.error("Error: ", e);
+                    message.setStatus(DataMessageStatus.UNKNOWN_ERROR);
+                    message.setErrorText(e.getMessage());
+                    try {
+                        sendMessage(ctx,message);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                        // todo
+                    }
                 }
-            }
+            });
+        } else {
+            message.setStatus(DataMessageStatus.ACCESS_DENIED);
+            sendMessage(ctx,message);
+        }
+    }
 
-            if (serviceMessage instanceof LogoutMessage && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
-               clients.remove(ctx.channel());
-                ctx.channel().closeFuture();
+
+    private void handleDataMessage(ChannelHandlerContext ctx, DataMessage message) throws IOException {
+        if (clients.contains(ctx.channel())) {
+            clients.getExecutor(ctx.channel()).execute(message);
+        } else {
+            message.setStatus(DataMessageStatus.ACCESS_DENIED);
+        }
+        sendMessage(ctx, message);
+    }
+
+
+    private void handleServiceMessage(ChannelHandlerContext ctx, Message message) throws IOException {
+        ServiceMessage serviceMessage = (ServiceMessage) message;
+        ServiceExecutor.execute(serviceMessage);
+
+        // add  after successful authorization
+        if (serviceMessage instanceof AuthMessage
+                && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
+            if (!addClient(ctx.channel(), (AuthMessage) serviceMessage)) {
+                //User is on the client connected list but not authenticated
+                serviceMessage.setStatus(ServiceMessageStatus.USER_IS_NOT_IN_CONNECTED_CLIENT_LIST);
+            } else {
                 log.info(
-                        String.format("Client %s disconnected.",
+                        String.format("Client %s connected.",
                                 ctx.channel().remoteAddress())
                 );
             }
         }
 
+        // Remove clients after logout
+        if (serviceMessage instanceof LogoutMessage && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
+            clients.remove(ctx.channel());
+            ctx.channel().closeFuture();
+            log.info(
+                    String.format("Client %s disconnected.",
+                            ctx.channel().remoteAddress())
+            );
+        }
+
+        sendMessage(ctx, message);
+    }
+
+
+    private void sendMessage(ChannelHandlerContext ctx, Message message) throws IOException {
         ctx.writeAndFlush(message);
 
         log.debug(
@@ -87,6 +132,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
                         message)
         );
     }
+
 
     private boolean addClient(Channel channel, AuthMessage message) {
 

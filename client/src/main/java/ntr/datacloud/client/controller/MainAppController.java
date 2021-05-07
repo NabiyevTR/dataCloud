@@ -3,7 +3,9 @@ package ntr.datacloud.client.controller;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.NoSuchFileException;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
@@ -33,6 +35,7 @@ import ntr.datacloud.common.filemanager.FileEntity;
 import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
+import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.common.messages.service.LogoutMessage;
 
@@ -215,12 +218,26 @@ public class MainAppController implements Initializable {
 
         Platform.runLater(() -> {
 
+
+
             try {
-                network.sendMsg(UploadMessage.builder()
-                        .fileName(uploadedFile.getName())
-                        .content(fileManager.fileToBytes(uploadedFile.getName()))
-                        .build()
+
+                List<byte[]> bytes = fileManager.fileToBytes(
+                        uploadedFile.getName(),
+                        properties.getMaxFileFrame()
                 );
+
+                List<UploadMessage> messages = fileManager.fileToBytes(uploadedFile.getName(), properties.getMaxFileFrame())
+                        .stream().map(b -> UploadMessage.builder()
+                                .fileName(uploadedFile.getName())
+                                .content(b)
+                                .status(DataMessageStatus.OK)
+                                .build())
+                        .collect(Collectors.toList());
+                messages.get(messages.size()-1).setLast(true);
+                
+                messages.forEach(network::sendMsg);
+
             } catch (IllegalAccessException | IOException e) {
                 e.printStackTrace();
                 //todo error message
@@ -247,22 +264,25 @@ public class MainAppController implements Initializable {
                     .fileName(downloadedFile.getName())
                     .build());
 
-            DownloadMessage message = (DownloadMessage) network.readMessage();
-
             try {
+                while (true) {
+                    DownloadMessage message = (DownloadMessage) network.readMessage();
+                    // todo check if file exists
+                    fileManager.setFileTransfer(true);
+                    fileManager.bytesToFile(message.getContent(), message.getFileName());
+                    if (message.isLast()) {
+                        fileManager.setFileTransfer(false);
+                        break;
 
-                if (message.getStatus() == DataMessageStatus.OK) {
-                    fileManager.bytesToFile(
-                            message.getContent(),
-                            message.getFileName()
-                    );
-                    clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+                    }
                 }
-            } catch (Exception e) {
-                //todo handle exception
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+
+                // todo handle
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-
         });
     }
 

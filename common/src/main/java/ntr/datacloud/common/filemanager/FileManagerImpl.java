@@ -1,6 +1,6 @@
 package ntr.datacloud.common.filemanager;
 
-import lombok.AllArgsConstructor;
+import lombok.*;
 import lombok.extern.log4j.Log4j;
 
 import java.io.*;
@@ -11,15 +11,33 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Log4j
-@AllArgsConstructor
 public class FileManagerImpl implements FileManager {
 
     private final String rootDir;
 
     private String currentDir;
 
+
+
+    public boolean fileTransfer =false;
+
+    public FileManagerImpl(String rootDir, String currentDir) {
+        this.rootDir = rootDir;
+        this.currentDir = currentDir;
+    }
+
     public FileManagerImpl(String serverDir) {
         this(serverDir, "");
+    }
+
+    @Override
+    public boolean isFileTransfer() {
+        return fileTransfer;
+    }
+
+    @Override
+    public void setFileTransfer(boolean fileTransfer) {
+        this.fileTransfer = fileTransfer;
     }
 
     @Override

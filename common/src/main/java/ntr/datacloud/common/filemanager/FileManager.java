@@ -30,4 +30,10 @@ public interface FileManager {
 
     boolean bytesToFile(byte[] bytes, String fileName) throws IOException, IllegalAccessException;
 
+    boolean isFileTransfer();
+
+     void setFileTransfer(boolean fileTransfer);
+
+
+
 }

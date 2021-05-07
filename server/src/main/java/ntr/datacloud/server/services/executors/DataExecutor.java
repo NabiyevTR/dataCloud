@@ -4,14 +4,15 @@ package ntr.datacloud.server.services.executors;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.filemanager.FileManager;
+import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.server.ServerProperties;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 @Log4j
@@ -30,7 +31,6 @@ public class DataExecutor {
 
         executors.put(CreateDirMessage.class.getName(), createDirExecutor());
         executors.put(DeleteMessage.class.getName(), deleteExecutor());
-        executors.put(DownloadMessage.class.getName(), downloadExecutor());
         executors.put(GetFilesMessage.class.getName(), getFilesExecutor());
         executors.put(RenameMessage.class.getName(), renameExecutor());
         executors.put(UploadMessage.class.getName(), uploadExecutor());
@@ -53,6 +53,36 @@ public class DataExecutor {
             message.setStatus(DataMessageStatus.UNKNOWN_COMMAND);
             log.warn("Server received unknown command: " + message);
             return false;
+        }
+    }
+
+    public List<DownloadMessage> executeDownload(DownloadMessage message) {
+
+        try {
+            List<DownloadMessage> messages =
+
+                    fileManager.fileToBytes(message.getFileName(), properties.getMaxFileFrame())
+                            .stream()
+                            .map(p -> DownloadMessage.builder()
+                                    .fileName(message.getFileName())
+                                    .content(p)
+                                    .status(DataMessageStatus.OK)
+                                    .build())
+                            .collect(Collectors.toList());
+
+            messages.get(messages.size() - 1).setLast(true);
+
+            return messages;
+
+        } catch (IOException | IllegalAccessException e) {
+            return Arrays.asList(
+                    DownloadMessage.builder()
+                            .status(DataMessageStatus.UNKNOWN_ERROR)
+                            .errorText(e.getMessage())
+                            .build()
+            );
+
+
         }
     }
 
@@ -85,9 +115,17 @@ public class DataExecutor {
         return message -> {
             UploadMessage uploadMessage = (UploadMessage) message;
             try {
+                // todo check if file exsists
+
+                fileManager.setFileTransfer(true);
+
                 fileManager.bytesToFile(
                         uploadMessage.getContent(),
                         uploadMessage.getFileName());
+                if (uploadMessage.isLast()) {
+                    fileManager.setFileTransfer(false);
+                }
+
                 uploadMessage.setContent(null);
                 uploadMessage.setFiles(fileManager.getFiles());
                 uploadMessage.setStatus(DataMessageStatus.OK);
@@ -97,7 +135,7 @@ public class DataExecutor {
         };
     }
 
-    private Consumer<DataMessage> downloadExecutor() {
+/*    private Consumer<DataMessage> downloadExecutor() {
         return message -> {
             DownloadMessage downloadMessage = (DownloadMessage) message;
             try {
@@ -110,7 +148,7 @@ public class DataExecutor {
                 //todo handle exception
             }
         };
-    }
+    }*/
 
 
     private Consumer<DataMessage> renameExecutor() {
