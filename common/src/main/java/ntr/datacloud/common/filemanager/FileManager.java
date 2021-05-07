@@ -3,6 +3,7 @@ package ntr.datacloud.common.filemanager;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
+import java.util.List;
 
 public interface FileManager {
 
@@ -24,6 +25,8 @@ public interface FileManager {
     boolean delete(String relPath) throws IllegalAccessException,  IOException;
 
     byte[] fileToBytes(String relPath) throws IllegalAccessException, IOException;
+
+    List<byte[]> fileToBytes(String relPath, int frame) throws IllegalAccessException, IOException;
 
     boolean bytesToFile(byte[] bytes, String fileName) throws IOException, IllegalAccessException;
 

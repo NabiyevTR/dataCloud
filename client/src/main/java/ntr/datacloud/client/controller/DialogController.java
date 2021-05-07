@@ -12,6 +12,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.NoArgsConstructor;
+import ntr.datacloud.client.stage.Dialog;
+
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -19,30 +21,29 @@ import java.util.ResourceBundle;
 public class DialogController implements Initializable {
 
     @FXML
-    private Text dialogHeader;
+    private Text dialogText;
     @FXML
     private HBox inputBox;
-    @FXML
-    private Label dialogLabel;
     @FXML
     private TextField dialogTextField;
 
 
-
     private Dialog.Type type;
-    private String header;
-    private String label;
+    private String text;
+    private String placeHolder;
 
-    public DialogController(Dialog.Type type, String header, String label) {
+
+    public DialogController(Dialog.Type type, String text, String placeHolder) {
         this.type = type;
-        this.header = header;
-        this.label = label;
+        this.text = text;
+        this.placeHolder = placeHolder;
+
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        dialogHeader.setText(header);
-        dialogLabel.setText(label);
+        dialogText.setText(text);
+        dialogTextField.setText(placeHolder);
 
         switch (type) {
             case ALERT:
@@ -67,10 +68,9 @@ public class DialogController implements Initializable {
         stage.close();
     }
 
-    public String getText () {
-        return  dialogTextField.getText();
+    public String getText() {
+        return dialogTextField.getText();
     }
-
 
 
 }

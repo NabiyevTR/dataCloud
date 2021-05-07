@@ -4,12 +4,18 @@
     -fx-background-repeat: stretch;
     -fx-background-size: 900 506;
     -fx-background-position: -140px 0;
-
 }
 
 #main_pane {
-    -fx-background-color: #1a1c2b ;
+    -fx-background-color: #1a1c2b;
 
+}
+
+#main_menu {
+    -fx-background-color: #5599ff;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1c2b;
 }
 
 #logo {
@@ -34,7 +40,8 @@
 
     -fx-text-fill: #1a1c2b;
     -fx-font-size: 10pt;
-    -fx-font-weight: bold;}
+    -fx-font-weight: bold;
+}
 
 #auth_buttons {
     -fx-pref-height: 30px;
@@ -67,6 +74,30 @@
     -fx-font-weight: bold;
 }
 
+#dialog {
+    -fx-background-color: #5599ff;
+    -fx-font-size: 10pt;
+}
+
+#dialog_text {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a1c2b;
+}
+
+#dialog_button {
+    -fx-pref-width: 100px;
+    -fx-pref-height: 10px;
+    -fx-background-radius: 0;
+    -fx-background-color: #1a1c2b;
+    -fx-text-fill: #5599ff;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+}
+
+/*#dialog_label {
+    -fx-font-size: 10pt;
+    -fx-text-fill: #1a1c2b;
+}*/
 
 
 .table-view {
@@ -75,8 +106,8 @@
 
 }
 
-.table-view .column-header .label{
-    -fx-alignment:CENTER-LEFT;
+.table-view .column-header .label {
+    -fx-alignment: CENTER-LEFT;
 }
 
 

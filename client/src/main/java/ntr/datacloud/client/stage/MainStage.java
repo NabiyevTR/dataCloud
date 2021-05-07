@@ -25,5 +25,12 @@ public class MainStage extends Stage {
         Scene scene = new Scene(fxmlLoader.load(), 1000, 600);
         setScene(scene);
         getIcons().add(new Image("/images/cloud.png"));
+        setTitle("DataCloud");
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        INSTANCE =null;
     }
 }

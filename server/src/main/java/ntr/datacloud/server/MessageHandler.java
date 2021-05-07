@@ -15,6 +15,8 @@ import ntr.datacloud.server.services.executors.ServiceExecutor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static ntr.datacloud.server.services.helpers.Helper.sizeof;
+
 @Log4j
 public class MessageHandler extends SimpleChannelInboundHandler<Message> {
 
@@ -25,8 +27,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
     protected void channelRead0(ChannelHandlerContext ctx, Message message) throws Exception {
 
         log.debug(
-                String.format("%s: Server received message from %s%nMessage: %s",
-                        getClass().getSimpleName(), ctx.channel().remoteAddress(), message)
+                String.format("%s: Server received message from %s%nMessage [Size %s kb]: %s",
+                        getClass().getSimpleName(),
+                        ctx.channel().remoteAddress(),
+                        sizeof(message),
+                        message)
         );
 
         if (message instanceof DataMessage) {
@@ -75,8 +80,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
         ctx.writeAndFlush(message);
 
         log.debug(
-                String.format("%s: Server sent message to %s%nMessage: %s",
-                        getClass().getSimpleName(), ctx.channel().remoteAddress(), message)
+                String.format("%s: Server sent message to %s%nMessage [Size %s kb]: %s",
+                        getClass().getSimpleName(),
+                        ctx.channel().remoteAddress(),
+                        sizeof(message),
+                        message)
         );
     }
 

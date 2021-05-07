@@ -8,7 +8,7 @@
 <VBox id="main_pane" alignment="TOP_CENTER" maxHeight="1000.0" maxWidth="1000.0" minHeight="500.0" minWidth="500.0" onKeyPressed="#onKeyPressed" prefHeight="600.0" prefWidth="1000.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.controller.MainAppController">
 
     <children>
-        <MenuBar VBox.vgrow="NEVER">
+        <MenuBar id="main_menu" VBox.vgrow="NEVER">
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>

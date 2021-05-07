@@ -16,8 +16,7 @@ import java.util.List;
 public class DataMessage extends Message {
     @Builder.Default
     protected DataMessageStatus status = DataMessageStatus.NO_RESPONSE;
-    @Builder.Default
-    protected String currentDir = "";
+
     private List<FileEntity> files;
 
 

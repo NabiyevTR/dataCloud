@@ -1,6 +1,7 @@
 package ntr.datacloud.server.services.executors;
 
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.messages.data.*;
@@ -17,12 +18,14 @@ import java.util.function.Consumer;
 public class DataExecutor {
 
     private static final ServerProperties properties = ServerProperties.getInstance();
+    @Getter
     private final FileManager fileManager;
     private final Map<String, Consumer<DataMessage>> executors =
             new HashMap<>();
 
 
     public DataExecutor(FileManager fileManager) {
+
         this.fileManager = fileManager;
 
         executors.put(CreateDirMessage.class.getName(), createDirExecutor());
@@ -35,7 +38,7 @@ public class DataExecutor {
 
     }
 
-    public  boolean execute(DataMessage message) {
+    public boolean execute(DataMessage message) {
         String key = message.getClass().getName();
         if (executors.containsKey(key)) {
             try {
@@ -56,7 +59,6 @@ public class DataExecutor {
 
     private Consumer<DataMessage> changeDirExecutor() {
         return message -> {
-           // FileManager fileManager = getFileManager(message);
             ChangeDirMessage changeDirMessage = (ChangeDirMessage) message;
             try {
                 fileManager.changeDir(changeDirMessage.getRelPath());
@@ -79,9 +81,8 @@ public class DataExecutor {
     }
 
 
-    private  Consumer<DataMessage> uploadExecutor() {
+    private Consumer<DataMessage> uploadExecutor() {
         return message -> {
-            //FileManager fileManager = getFileManager(message);
             UploadMessage uploadMessage = (UploadMessage) message;
             try {
                 fileManager.bytesToFile(
@@ -96,9 +97,8 @@ public class DataExecutor {
         };
     }
 
-    private  Consumer<DataMessage> downloadExecutor() {
+    private Consumer<DataMessage> downloadExecutor() {
         return message -> {
-          //  FileManager fileManager = getFileManager(message);
             DownloadMessage downloadMessage = (DownloadMessage) message;
             try {
                 downloadMessage.setContent(
@@ -116,7 +116,7 @@ public class DataExecutor {
     private Consumer<DataMessage> renameExecutor() {
         return message -> {
             try {
-           //     FileManager fileManager = getFileManager(message);
+                //     FileManager fileManager = getFileManager(message);
                 RenameMessage renameMessage = (RenameMessage) message;
                 fileManager.rename(
                         renameMessage.getOldName(),
@@ -138,10 +138,10 @@ public class DataExecutor {
     }
 
 
-    private  Consumer<DataMessage> deleteExecutor() {
+    private Consumer<DataMessage> deleteExecutor() {
         return message -> {
             try {
-            //    FileManager fileManager = getFileManager(message);
+                //    FileManager fileManager = getFileManager(message);
                 DeleteMessage deleteMessage = (DeleteMessage) message;
                 if (fileManager.delete(
                         deleteMessage.getFileToDelete()
@@ -169,10 +169,9 @@ public class DataExecutor {
     private Consumer<DataMessage> createDirExecutor() {
         return message -> {
             try {
-              //  FileManager fileManager = getFileManager(message);
+                //  FileManager fileManager = getFileManager(message);
                 CreateDirMessage createDirMessage = (CreateDirMessage) message;
                 fileManager.createDir(createDirMessage.getNewDir());
-                fileManager.changeDir(createDirMessage.getNewDir());
                 createDirMessage.setFiles(
                         fileManager.getFiles()
                 );
@@ -184,14 +183,15 @@ public class DataExecutor {
     }
 
 
-    private  Consumer<DataMessage> getFilesExecutor() {
+    private Consumer<DataMessage> getFilesExecutor() {
         return message -> {
 
-           // FileManager fileManager = getFileManager(message);
+            // FileManager fileManager = getFileManager(message);
             GetFilesMessage getFilesMessage = (GetFilesMessage) message;
 
 
             try {
+                fileManager.changeDir(getFilesMessage.getRelDir());
                 getFilesMessage.setFiles(fileManager.getFiles());
                 getFilesMessage.setStatus(DataMessageStatus.OK);
             } catch (Exception e) {
@@ -201,18 +201,6 @@ public class DataExecutor {
                 getFilesMessage.setErrorText(e.getMessage());
             }
         };
-    }
-
-    private  FileManager getFileManager(DataMessage message) {
-
-       /* String dir = Paths.get(
-                properties.getRootDir().toString(),
-                message.getLogin(),
-                message.getCurrentDir()
-        ).normalize().toString();
-
-        return new FileManagerImpl(dir);*/
-        return fileManager;
     }
 
 

@@ -18,6 +18,8 @@ public class NettyNetwork {
     private ObjectEncoderOutputStream out;
     private ObjectDecoderInputStream in;
 
+    private final int MAX_MESSAGE_SIZE = 5 * 1024 * 1024;
+
     //todo configure somewhere
 
 
@@ -35,13 +37,15 @@ public class NettyNetwork {
     private NettyNetwork() {
         try {
             socket = new Socket(host, port);
-            out = new ObjectEncoderOutputStream(socket.getOutputStream());
-            in = new ObjectDecoderInputStream(socket.getInputStream());
+            out = new ObjectEncoderOutputStream(socket.getOutputStream(), MAX_MESSAGE_SIZE);
+            in = new ObjectDecoderInputStream(socket.getInputStream(), MAX_MESSAGE_SIZE);
             log.info(
                     String.format("Client has connected to server %s/%d successfully", host, port)
             );
+
+
         } catch (Exception e) {
-            INSTANCE = null;
+            terminate();
             log.error(
                     String.format("Cannot connect to server %s/%d: ", host, port), e
             );
@@ -52,20 +56,31 @@ public class NettyNetwork {
         try {
             out.close();
             log.debug(out.getClass().getSimpleName() + " was closed successfully.");
+        } catch (Exception e) {
+            log.debug(out.getClass().getSimpleName() + " was not closed.");
+        }
+
+        try {
             in.close();
             log.debug(in.getClass().getSimpleName() + " was closed successfully.");
+        } catch (Exception e) {
+            log.debug(in.getClass().getSimpleName() + " was not closed.");
+        }
+
+        try {
             socket.close();
             log.debug(socket.getClass().getSimpleName() + " was closed successfully.");
-            INSTANCE = null;
-            log.info(
-                    String.format("Connection with server %s/%d was closed successfully", host, port)
-            );
         } catch (Exception e) {
-            log.error(
-                    String.format("Client failed to close connection with server %s/%d: ", host, port), e
-            );
+            log.debug(socket.getClass().getSimpleName() + " was not closed.");
         }
+
+        INSTANCE = null;
+        log.info(
+                String.format("Connection with server %s/%d was closed ", host, port)
+        );
+
     }
+
 
     public boolean sendMsg(Message message) {
         try {
@@ -73,7 +88,6 @@ public class NettyNetwork {
             log.debug(
                     String.format("Client send message to server %s/%d: %s", host, port, message)
             );
-            //todo override toString() in Message
             return true;
         } catch (Exception e) {
             log.error(
@@ -85,21 +99,42 @@ public class NettyNetwork {
 
     public Message readMessage() {
 
-        Future<Message> future = new FutureTask<>(
-                () -> (Message) in.readObject());
+        // DOESN'T WORK WRONG MESSAGE ORDER
 
+     /*   ExecutorService executor = Executors.newSingleThreadExecutor();
+        RunnableFuture<Message> future = new FutureTask<>(() -> (Message) in.readObject());
+        executor.execute(future);
 
         try {
-            return future.get(ClientProperties.getInstance().getTimeOut(), TimeUnit.MILLISECONDS);
+            Message message = future.get(ClientProperties.getInstance().getTimeOut(), TimeUnit.MILLISECONDS);
+            log.info(
+                    String.format("Client receive message from server %s/%d: %s", host, port, message)
+            );
+            return message;
 
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
 
-            log.error("Cannot connect to server: ", e);
+            log.error("No response from server: ", e);
+            return Message.builder()
+                    .errorText(e.getMessage())
+                    .build();
+        }*/
+
+
+        try {
+            Message message = (Message) in.readObject();
+            log.debug(
+                    String.format("Client receive message from server %s/%d: %s", host, port, message)
+            );
+            return message;
+
+        } catch (Exception e) {
+            log.error(
+                    String.format("Client failed to receive message from server %s/%d: ", host, port), e
+            );
             return Message.builder()
                     .errorText(e.getMessage())
                     .build();
         }
-
-
     }
 }

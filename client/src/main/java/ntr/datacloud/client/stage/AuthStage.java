@@ -1,13 +1,8 @@
 package ntr.datacloud.client.stage;
 
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import ntr.datacloud.client.DataCloudClient;
@@ -32,6 +27,8 @@ public class AuthStage extends Stage {
         setScene(scene);
         setResizable(false);
         initStyle(StageStyle.UNDECORATED);
+        getIcons().add(new Image("/images/cloud.png"));
+        setTitle("DataCloud");
             }
 
 }

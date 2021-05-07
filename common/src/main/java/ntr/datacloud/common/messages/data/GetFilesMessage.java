@@ -1,5 +1,6 @@
 package ntr.datacloud.common.messages.data;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -10,7 +11,10 @@ import java.util.stream.Collectors;
 @Setter
 public class GetFilesMessage extends DataMessage {
 
-    @Override
+    @Builder.Default
+    protected String relDir = "";
+
+/*    @Override
     public String toString() {
 
         if (getFiles() == null) {
@@ -22,5 +26,5 @@ public class GetFilesMessage extends DataMessage {
                             .map(f -> f.getName())
                             .collect(Collectors.joining("\n"));
         }
-    }
+    }*/
 }

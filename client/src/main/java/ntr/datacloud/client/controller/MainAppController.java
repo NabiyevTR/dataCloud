@@ -1,6 +1,5 @@
 package ntr.datacloud.client.controller;
 
-import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.NoSuchFileException;
@@ -13,10 +12,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -24,24 +21,20 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j;
-import ntr.datacloud.client.DataCloudClient;
 import ntr.datacloud.client.model.ClientProperties;
 import ntr.datacloud.client.stage.AuthStage;
+import ntr.datacloud.client.stage.Dialog;
 import ntr.datacloud.client.stage.MainStage;
 import ntr.datacloud.common.filemanager.FileEntity;
 import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
-import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.common.messages.service.LogoutMessage;
-
-import javax.swing.plaf.metal.MetalIconFactory;
 
 
 @Log4j
@@ -179,6 +172,30 @@ public class MainAppController implements Initializable {
 
                 serverFileList.setItems(serverFiles);
 
+                serverFileList.setRowFactory(tv -> {
+                    TableRow<FileEntity> row = new TableRow<>();
+                    row.setOnMouseClicked(mouseEvent -> {
+                        if (!row.isEmpty() && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
+                            FileEntity clickedFile = row.getItem();
+                            if (clickedFile.getType() == FileEntity.FileType.DIRECTORY) {
+                                FileEntity file = row.getItem();
+
+                                Platform.runLater(() -> {
+                                    network.sendMsg(GetFilesMessage.builder()
+                                            .relDir(clickedFile.getName())
+                                            .build());
+
+                                    GetFilesMessage filesMessage = (GetFilesMessage) network.readMessage();
+
+                                    handleResponseMessage(filesMessage);
+
+                                });
+                            }
+                        }
+                    });
+                    return row;
+                });
+
 
             } else {
                 //todo notify user
@@ -268,7 +285,7 @@ public class MainAppController implements Initializable {
                 (Stage) ((Node) event.getSource()).getScene().getWindow(),
                 Dialog.Type.TEXT_INPUT,
                 "Enter new folder name",
-                "Folder: "
+                ""
         );
 
         String newDir = dialog.getText();
@@ -312,7 +329,7 @@ public class MainAppController implements Initializable {
                 (Stage) ((Node) event.getSource()).getScene().getWindow(),
                 Dialog.Type.TEXT_INPUT,
                 "Enter new file or folder name",
-                "New name: "
+                file.getName()
         );
 
         String newName = dialog.getText();
@@ -330,6 +347,13 @@ public class MainAppController implements Initializable {
 
     public void goToParentDirOnServer(ActionEvent event) {
         Platform.runLater(() -> {
+            network.sendMsg(ChangeDirMessage.builder()
+                    .relPath("..")
+                    .build());
+
+            ChangeDirMessage message = (ChangeDirMessage) network.readMessage();
+
+            handleResponseMessage(message);
 
         });
     }
@@ -340,7 +364,7 @@ public class MainAppController implements Initializable {
                 (Stage) ((Node) event.getSource()).getScene().getWindow(),
                 Dialog.Type.TEXT_INPUT,
                 "Enter new folder name",
-                "New folder name: "
+                ""
         );
 
         String newFolderName = dialog.getText();
@@ -384,7 +408,7 @@ public class MainAppController implements Initializable {
                 (Stage) ((Node) event.getSource()).getScene().getWindow(),
                 Dialog.Type.TEXT_INPUT,
                 "Enter new file or folder name",
-                "New name: "
+                file.getName()
         );
 
         String newName = dialog.getText();
@@ -430,9 +454,10 @@ public class MainAppController implements Initializable {
 
 
         try {
-
             AuthStage.getStage().show();
-            MainStage.getStage().hide();
+            MainStage.getStage().close();
+
+            properties = null;
         } catch (Exception e) {
             log.error("Error during changing window: ", e);
         }

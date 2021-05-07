@@ -15,6 +15,7 @@ public class ServiceMessage extends Message {
     @Override
     public String toString() {
         return  String.format("%s: status = %s",
-                getClass().getSimpleName() );
+                getClass().getSimpleName(),
+                status);
     }
 }

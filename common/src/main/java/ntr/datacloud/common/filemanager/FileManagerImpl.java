@@ -3,12 +3,10 @@ package ntr.datacloud.common.filemanager;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -131,18 +129,42 @@ public class FileManagerImpl implements FileManager {
     }
 
     @Override
+    public List<byte[]> fileToBytes(String relPath, int frame) throws IllegalAccessException, IOException {
+
+        Path path = Paths.get(rootDir, currentDir, relPath).normalize();
+        checkAccess(path);
+
+        long fileSize = Files.size(path);
+        long parts = fileSize / frame + 1;
+        byte[] buffer = new byte[frame];
+        List<byte[]> bytes = new ArrayList<>((int) (frame * 1.3));
+
+        try (FileInputStream file = new FileInputStream(path.toFile())) {
+
+            for (int i = 0; i < parts; i++) {
+                int length = file.read(buffer);
+                bytes.add(
+                        length == frame ?  buffer :  Arrays.copyOf(buffer, length)
+                );
+            }
+        }
+        return bytes;
+
+    }
+
+
+    @Override
     public boolean bytesToFile(byte[] bytes, String fileName) throws IOException, IllegalAccessException {
 
         Path path = Paths.get(rootDir, currentDir, fileName).normalize();
         checkAccess(path);
 
-        try (FileOutputStream fos = new FileOutputStream(path.toString())) {
+        try (FileOutputStream fos = new FileOutputStream(path.toString(), true)) {
             fos.write(bytes);
             return true;
         }
         // todo catch
     }
-
 
 
     private void checkAccess(Path path) throws IllegalAccessException {
@@ -163,8 +185,6 @@ public class FileManagerImpl implements FileManager {
         }
         return dirToDelete.delete();
     }
-
-
 
 
 }

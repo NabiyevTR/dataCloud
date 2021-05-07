@@ -14,10 +14,7 @@ import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.client.stage.AuthStage;
 import ntr.datacloud.client.stage.MainStage;
 import ntr.datacloud.common.messages.Message;
-import ntr.datacloud.common.messages.service.AuthMessage;
-import ntr.datacloud.common.messages.service.LogonMessage;
-import ntr.datacloud.common.messages.service.RegMessage;
-import ntr.datacloud.common.messages.service.ServiceMessageStatus;
+import ntr.datacloud.common.messages.service.*;
 
 import java.io.IOException;
 
@@ -80,7 +77,6 @@ public class AuthController {
             return;
         }
 
-        //todo get it from server
         String regularExpressionLogin = "^[a-z0-9_-]{3,16}$";
 
         if (!regLogin.getText().matches(regularExpressionLogin)) {
@@ -89,7 +85,6 @@ public class AuthController {
             return;
         }
 
-        //todo get it from server
         String regularExpressionPass = "^[a-z0-9_-]{6,16}$";
 
         if (!regPass.getText().matches(regularExpressionPass)) {
@@ -106,8 +101,10 @@ public class AuthController {
 
             AuthMessage message = (AuthMessage) network.readMessage();
             handleAuthMessage(message);
+
         } else {
             showError("Cannot connect to server");
+            network.terminate();
         }
 
 
@@ -115,8 +112,7 @@ public class AuthController {
 
     @FXML
     private void logonUser(ActionEvent actionEvent) {
-        String login = logonLogin.getText().toLowerCase().trim();
-        String password = logonPass.getText().trim();
+
 
         if (logonLogin.getText().isEmpty() && logonPass.getText().isEmpty()) {
             logonError.setText("Login and pass field is empty");
@@ -136,6 +132,9 @@ public class AuthController {
             return;
         }
 
+        String login = logonLogin.getText().toLowerCase().trim();
+        String password = logonPass.getText().trim();
+
         if (network.sendMsg(LogonMessage
                 .builder()
                 .login(login)
@@ -145,6 +144,7 @@ public class AuthController {
             handleAuthMessage(message);
         } else {
             showError("Cannot connect to server");
+            network.terminate();
         }
 
 
@@ -217,6 +217,10 @@ public class AuthController {
                 // Save credentials after successful authentication in client properties
                 properties.setLogin(authMessage.getLogin());
                 properties.setPassword(authMessage.getPassword());
+
+                // Get settings from server
+                getSettingsFromServer();
+
                 // Clear all fields
                 resetFields();
                 goToMainStage();
@@ -234,6 +238,7 @@ public class AuthController {
 
     }
 
+
     private void showError(String errorText) {
         logonError.setText(errorText);
         logonError.setVisible(true);
@@ -241,5 +246,13 @@ public class AuthController {
         regError.setVisible(true);
     }
 
+    private void getSettingsFromServer() {
+        network.sendMsg(ConfigMessage.builder()
+                .build());
+
+        ConfigMessage message = (ConfigMessage) network.readMessage();
+        properties.setMaxFileFrame(message.getMaxFileFrame());
+
+    }
 
 }
