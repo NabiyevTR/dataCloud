@@ -1,0 +1,19 @@
+
+#dialog {
+    -fx-background-color: #5599ff;
+    -fx-font-size: 10pt;
+}
+
+#dialog_text {
+    -fx-font-weight: bold;
+}
+
+#dialog_button {
+    -fx-pref-width: 100px;
+    -fx-pref-height: 10px;
+    -fx-background-radius: 0;
+    -fx-background-color: #1a1c2b;
+    -fx-text-fill: #5599ff;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+}

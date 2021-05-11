@@ -1,35 +1,33 @@
 package ntr.datacloud.server.services.executors;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.filemanager.FileManager;
-import ntr.datacloud.common.filemanager.FileManagerImpl;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.server.ServerProperties;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Log4j
 public class DataExecutor {
 
     private static final ServerProperties properties = ServerProperties.getInstance();
-    // private final String serverRootDir = properties.getRootDir().toString();
-
-
-    private static final Map<String, Consumer<DataMessage>> executors =
+    @Getter
+    private final FileManager fileManager;
+    private final Map<String, Consumer<DataMessage>> executors =
             new HashMap<>();
 
-    static {
+
+    public DataExecutor(FileManager fileManager) {
+
+        this.fileManager = fileManager;
+
         executors.put(CreateDirMessage.class.getName(), createDirExecutor());
         executors.put(DeleteMessage.class.getName(), deleteExecutor());
-        executors.put(DownloadMessage.class.getName(), downloadExecutor());
         executors.put(GetFilesMessage.class.getName(), getFilesExecutor());
         executors.put(RenameMessage.class.getName(), renameExecutor());
         executors.put(UploadMessage.class.getName(), uploadExecutor());
@@ -37,7 +35,7 @@ public class DataExecutor {
 
     }
 
-    public static boolean execute(DataMessage message) {
+    public boolean execute(DataMessage message) {
         String key = message.getClass().getName();
         if (executors.containsKey(key)) {
             try {
@@ -55,10 +53,36 @@ public class DataExecutor {
         }
     }
 
+    public List<DownloadMessage> executeDownload(DownloadMessage message) {
 
-    private static Consumer<DataMessage> changeDirExecutor() {
+        try {
+            List<DownloadMessage> messages =
+
+                    fileManager.fileToBytes(message.getFileName(), properties.getMaxFileFrame())
+                            .stream()
+                            .map(p -> DownloadMessage.builder()
+                                    .fileName(message.getFileName())
+                                    .content(p)
+                                    .status(DataMessageStatus.OK)
+                                    .build())
+                            .collect(Collectors.toList());
+
+            messages.get(messages.size() - 1).setLast(true);
+
+            return messages;
+
+        } catch (IOException | IllegalAccessException e) {
+            return Arrays.asList(
+                    DownloadMessage.builder()
+                            .status(DataMessageStatus.UNKNOWN_ERROR)
+                            .errorText(e.getMessage())
+                            .build()
+            );
+        }
+    }
+
+    private Consumer<DataMessage> changeDirExecutor() {
         return message -> {
-            FileManager fileManager = getFileManager(message);
             ChangeDirMessage changeDirMessage = (ChangeDirMessage) message;
             try {
                 fileManager.changeDir(changeDirMessage.getRelPath());
@@ -68,57 +92,60 @@ public class DataExecutor {
                 changeDirMessage.setStatus(DataMessageStatus.OK);
             } catch (NoSuchFileException e) {
                 log.error(e);
-                changeDirMessage.setErrorText(e.toString());
+                changeDirMessage.setErrorText(e.getMessage());
                 changeDirMessage.setStatus(DataMessageStatus.NO_SUCH_DIRECTORY);
             } catch (IllegalAccessException e) {
-                log.error(e);
-                changeDirMessage.setErrorText(e.toString());
-                changeDirMessage.setStatus(DataMessageStatus.ACCESS_DENIED);
+                handleAccessDeniedException(changeDirMessage, e);
             } catch (IOException e) {
-                //todo handle exception
+                log.error(e);
+                changeDirMessage.setErrorText(e.getMessage());
+                changeDirMessage.setStatus(DataMessageStatus.UNKNOWN_ERROR);
             }
         };
     }
 
-
-    private static Consumer<DataMessage> uploadExecutor() {
+    private Consumer<DataMessage> uploadExecutor() {
         return message -> {
-            FileManager fileManager = getFileManager(message);
             UploadMessage uploadMessage = (UploadMessage) message;
             try {
+                if (fileManager.fileExists(uploadMessage.getFileName()) && !fileManager.isFileTransfer()) {
+                    uploadMessage.setStatus(DataMessageStatus.FILE_EXISTS);
+                    return;
+                }
+
+                fileManager.setFileTransfer(true);
+
                 fileManager.bytesToFile(
                         uploadMessage.getContent(),
                         uploadMessage.getFileName());
-                uploadMessage.setFiles(fileManager.getFiles());
+                if (uploadMessage.isLast()) {
+                    fileManager.setFileTransfer(false);
+                }
+
+                uploadMessage.setContent(null);
+                if (uploadMessage.isLast()) {
+                    uploadMessage.setFiles(fileManager.getFiles());
+                }
                 uploadMessage.setStatus(DataMessageStatus.OK);
-            } catch (IOException | IllegalAccessException e) {
-                //todo
-            }
-        };
-    }
-
-    private static Consumer<DataMessage> downloadExecutor() {
-        return message -> {
-            FileManager fileManager = getFileManager(message);
-            DownloadMessage downloadMessage = (DownloadMessage) message;
-            try {
-                downloadMessage.setContent(
-                        fileManager.fileToBytes(downloadMessage.getFileName())
+            } catch (IllegalAccessException e) {
+                handleAccessDeniedException(uploadMessage, e);
+            } catch (IOException e) {
+                log.error(
+                        String.format("Cannot upload file %s:", uploadMessage.getFileName())
                 );
-
-                downloadMessage.setStatus(DataMessageStatus.OK);
-            } catch (IOException | IllegalAccessException e) {
-                //todo handle exception
+                uploadMessage.setContent(null);
+                uploadMessage.setStatus(DataMessageStatus.CANNOT_UPLOAD);
+                uploadMessage.setErrorText(e.getMessage());
             }
         };
+
     }
 
-
-    private static Consumer<DataMessage> renameExecutor() {
+    private Consumer<DataMessage> renameExecutor() {
         return message -> {
+            RenameMessage renameMessage = (RenameMessage) message;
+
             try {
-                FileManager fileManager = getFileManager(message);
-                RenameMessage renameMessage = (RenameMessage) message;
                 fileManager.rename(
                         renameMessage.getOldName(),
                         renameMessage.getNewName()
@@ -126,24 +153,26 @@ public class DataExecutor {
                 renameMessage.setFiles(fileManager.getFiles());
                 renameMessage.setStatus(DataMessageStatus.OK);
             } catch (IOException e) {
-                // todo handle exception
+                log.error(
+                        String.format("Cannot rename file o directory %s:", renameMessage.getOldName()), e);
+                renameMessage.setStatus(DataMessageStatus.CANNOT_RENAME);
+                renameMessage.setErrorText(e.getMessage());
                 message.setStatus(DataMessageStatus.UNKNOWN_ERROR);
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
-                message.setStatus(DataMessageStatus.ACCESS_DENIED);
-                e.printStackTrace();
-                // todo handle exception
+                handleAccessDeniedException(renameMessage, e);
             }
-
         };
     }
 
 
-    private static Consumer<DataMessage> deleteExecutor() {
+    private Consumer<DataMessage> deleteExecutor() {
         return message -> {
+
+            DeleteMessage deleteMessage = (DeleteMessage) message;
+
             try {
-                FileManager fileManager = getFileManager(message);
-                DeleteMessage deleteMessage = (DeleteMessage) message;
+
                 if (fileManager.delete(
                         deleteMessage.getFileToDelete()
                 )) {
@@ -153,66 +182,76 @@ public class DataExecutor {
                 } else {
                     deleteMessage.setStatus(DataMessageStatus.CANNOT_DELETE);
                 }
-
-
             } catch (IOException e) {
-                //todo handle exception
-                e.printStackTrace();
+                log.error(
+                        String.format("Cannot delete file o directory %s:", deleteMessage.getFileToDelete()), e);
+                deleteMessage.setStatus(DataMessageStatus.CANNOT_DELETE);
+                deleteMessage.setErrorText(e.getMessage());
             } catch (IllegalAccessException e) {
-
-                e.printStackTrace();
+                handleAccessDeniedException(deleteMessage, e);
             }
-
         };
     }
 
 
-    private static Consumer<DataMessage> createDirExecutor() {
+    private Consumer<DataMessage> createDirExecutor() {
         return message -> {
+
+            CreateDirMessage createDirMessage = (CreateDirMessage) message;
+
             try {
-                FileManager fileManager = getFileManager(message);
-                CreateDirMessage createDirMessage = (CreateDirMessage) message;
+                if (fileManager.fileExists(createDirMessage.getNewDir())) {
+                    createDirMessage.setStatus(DataMessageStatus.DIRECTORY_EXISTS);
+                    return;
+                }
+
                 fileManager.createDir(createDirMessage.getNewDir());
-                fileManager.changeDir(createDirMessage.getNewDir());
                 createDirMessage.setFiles(
                         fileManager.getFiles()
                 );
                 createDirMessage.setStatus(DataMessageStatus.OK);
-            } catch (IOException | IllegalAccessException e) {
-                //todo handle exception
+            } catch (IllegalAccessException e) {
+                handleAccessDeniedException(createDirMessage, e);
+            } catch (IOException e) {
+                log.error(
+                        String.format("Cannot create directory %s:", createDirMessage.getNewDir()), e);
+                createDirMessage.setStatus(DataMessageStatus.CANNOT_CREATE_DIR);
+                createDirMessage.setErrorText(e.getMessage());
             }
         };
     }
 
 
-    private static Consumer<DataMessage> getFilesExecutor() {
+    private Consumer<DataMessage> getFilesExecutor() {
         return message -> {
 
-            FileManager fileManager = getFileManager(message);
             GetFilesMessage getFilesMessage = (GetFilesMessage) message;
 
-
             try {
+                fileManager.changeDir(getFilesMessage.getRelDir());
                 getFilesMessage.setFiles(fileManager.getFiles());
                 getFilesMessage.setStatus(DataMessageStatus.OK);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error(
                         String.format("Cannot get files from directory %s:", fileManager.getCurrentDir()), e);
                 getFilesMessage.setStatus(DataMessageStatus.CANNOT_GET_FILES_FROM_SERVER);
                 getFilesMessage.setErrorText(e.getMessage());
+            } catch (IllegalAccessException e) {
+                handleAccessDeniedException(getFilesMessage, e);
             }
         };
     }
 
-    private static FileManager getFileManager(DataMessage message) {
+    private void handleAccessDeniedException(DataMessage message, Exception e) {
+        log.error("Access denied: ", e);
+        message.setErrorText(e.getMessage());
+        message.setStatus(DataMessageStatus.ACCESS_DENIED);
+    }
 
-        String dir = Paths.get(
-                properties.getRootDir().toString(),
-                message.getLogin(),
-                message.getCurrentDir()
-        ).normalize().toString();
-
-        return new FileManagerImpl(dir);
+    private void handleIOException(DataMessage message, Exception e, String errorText) {
+        log.error(errorText, e);
+        message.setStatus(DataMessageStatus.CANNOT_GET_FILES_FROM_SERVER);
+        message.setErrorText(e.getMessage());
     }
 
 

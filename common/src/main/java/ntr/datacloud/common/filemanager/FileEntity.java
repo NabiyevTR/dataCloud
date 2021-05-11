@@ -21,13 +21,11 @@ public class FileEntity implements Serializable {
     }
 
     private String name;
-   // private Path path; //Cannot be serialized. Must be deleted
     private String size;
     private FileType type;
 
     public FileEntity(Path path) {
         this.name = path.getFileName().toString();
-     //   this.path = path;
         this.type = (new File(path.toString())).isDirectory() ? FileType.DIRECTORY : FileType.REGULAR_FILE;
         try {
             this.size = (new File(path.toString())).isDirectory() ? "" : Files.size(path) / 1024 + "KB";

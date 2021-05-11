@@ -1,8 +1,14 @@
 package ntr.datacloud.server.services.auth;
 
-import java.io.Closeable;
+public interface AuthService {
 
-public interface AuthService  {
+    default String getRegexLogin() {
+        return "^[a-z0-9_-]{3,16}$";
+    }
+
+    default String getRegexPass() {
+        return "^[a-z0-9_-]{6,16}$";
+    }
 
     boolean registration(String login, String password);
 

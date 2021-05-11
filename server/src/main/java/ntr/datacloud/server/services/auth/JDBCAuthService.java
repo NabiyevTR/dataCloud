@@ -1,5 +1,6 @@
 package ntr.datacloud.server.services.auth;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ public class JDBCAuthService implements AuthService {
     private static final String sqlInsertUser = "INSERT INTO users (login, password) VALUES  (?, ?)";
     private static final String sqlSelectLoginByLogin = "SELECT login FROM users WHERE login=?";
     private static final String sqlSelectLoginByLoginAndPass = "SELECT login FROM users WHERE login=? AND password=?";
+
 
     private Connection connection;
     private ResultSet resultSet;
@@ -121,5 +123,4 @@ public class JDBCAuthService implements AuthService {
         }
         return false;
     }
-
 }

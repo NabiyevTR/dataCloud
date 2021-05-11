@@ -2,33 +2,51 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.controller.AuthController">
+<VBox id="auth_pane" fx:id="authPanel" alignment="TOP_CENTER" onMouseDragged="#onMouseDragged" onMousePressed="#onMousePressed" prefHeight="500.0" prefWidth="800.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ntr.datacloud.client.controller.AuthController">
     <children>
-        <MenuBar>
-            <menus>
-                <Menu mnemonicParsing="false" text="File">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Close"/>
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Delete"/>
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Help">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="About"/>
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
 
-        <Label text="Data cloud">
 
+        <VBox alignment="CENTER_RIGHT">
+            <children>
+                <ImageView fitHeight="35" fitWidth="35" onMouseClicked="#onExitClicked" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@images/exit.png" />
+                    </image>
+               <VBox.margin>
+                  <Insets right="10.0" top="10.0" />
+               </VBox.margin>
+
+
+                </ImageView>
+            </children>
+        </VBox>
+        <!--        <MenuBar>
+                    <menus>
+                        <Menu mnemonicParsing="false" text="File">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="Close"/>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Edit">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="Delete"/>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Help">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="About"/>
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>-->
+
+        <Label id="logo" text="DataCloud">
+            <VBox.margin>
+                <Insets bottom="20.0" left="20.0" right="30.0" top="-15.0" />
+            </VBox.margin>
         </Label>
 
         <StackPane prefHeight="150.0" prefWidth="200.0">
@@ -36,90 +54,96 @@
 
                 <VBox fx:id="regPanel" alignment="TOP_CENTER" spacing="15.0" visible="false">
                     <children>
-                        <HBox alignment="CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
-                            <children>
-                                <VBox spacing="10.0">
-                                    <children>
-                                        <Label text="Username:">
-                                        </Label>
-                                        <Label text="Password:">
-                                        </Label>
-                                        <Label text="Repeat password:">
-                                        </Label>
-                                    </children>
-                                </VBox>
-                                <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
-                                    <children>
-                                        <TextField fx:id="regLogin" minWidth="200.0">
+                        <Label id="auth_label" text="Username:">
+                            <VBox.margin>
+                                <Insets bottom="-17.0" top="25.0" />
+                            </VBox.margin>
+                        </Label>
+                        <TextField id="auth_input" fx:id="regLogin" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="10.0">
 
-                                        </TextField>
-                                        <PasswordField fx:id="regPass" minWidth="200.0">
+                        </TextField>
+                        <Label id="auth_label" text="Password:">
+                            <VBox.margin>
+                                <Insets bottom="-17.0" top="-10.0" />
+                            </VBox.margin>
+                        </Label>
+                        <PasswordField id="auth_input" fx:id="regPass" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="10.0">
 
-                                        </PasswordField>
-                                        <PasswordField fx:id="regPassRepeat" minWidth="200.0">
+                        </PasswordField>
+                        <Label id="auth_label" text="Repeat password:">
+                            <VBox.margin>
+                                <Insets bottom="-17.0" top="-10.0" />
+                            </VBox.margin>
+                        </Label>
+                        <PasswordField id="auth_input" fx:id="regPassRepeat" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="10.0">
 
-                                        </PasswordField>
-                                        <Label fx:id="regError" text="Label" visible="false"/>
-                                    </children>
-
-                                </VBox>
-                            </children>
-                        </HBox>
-                        <Button fx:id="registerBtn" minWidth="200.0" mnemonicParsing="false" onAction="#regUser"
-                                text="REGISTER"/>
-                        <Button fx:id="backBtn" minWidth="200.0" mnemonicParsing="false" onAction="#backToLogonPanel"
-                                text="BACK"/>
+                        </PasswordField>
+                        <Label id="auth_input_error" fx:id="regError" text="Label" visible="false">
+                            <VBox.margin>
+                                <Insets top="-8.0" />
+                            </VBox.margin>
+                        </Label>
+                        <Button id="auth_buttons" fx:id="registerBtn" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="30.0" mnemonicParsing="false" onAction="#regUser" text="REGISTER">
+                            <VBox.margin>
+                                <Insets top="20.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button id="auth_buttons" fx:id="backBtn" maxHeight="-Infinity" minHeight="-Infinity" minWidth="30.0" mnemonicParsing="false" onAction="#backToLogonPanel" text="BACK">
+                            <VBox.margin>
+                                <Insets top="5.0" />
+                            </VBox.margin>
+                        </Button>
 
                     </children>
                 </VBox>
-                <VBox fx:id="logonPanel" alignment="CENTER" spacing="15.0" StackPane.alignment="CENTER">
+                <VBox fx:id="logonPanel" alignment="CENTER" spacing="15.0" stylesheets="@style.css" StackPane.alignment="CENTER">
                     <children>
-                        <HBox alignment="CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
-                            <children>
-                                <VBox alignment="CENTER" spacing="10.0">
-                                    <children>
-                                        <Label text="Username:">
+                        <Label id="auth_label" stylesheets="@style.css" text="Username:">
+                            <VBox.margin>
+                                <Insets bottom="-10.0" top="40.0" />
+                            </VBox.margin>
+                        </Label>
+                        <TextField id="auth_input" fx:id="logonLogin" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
 
-                                        </Label>
-                                        <Label text="Password:">
+                        </TextField>
+                        <Label id="auth_label" text="Password:">
+                            <VBox.margin>
+                                <Insets bottom="-10.0" top="-10.0" />
+                            </VBox.margin>
+                        </Label>
+                        <PasswordField id="auth_input" fx:id="logonPass" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
 
-                                        </Label>
-                                    </children>
+                        </PasswordField>
 
-                                </VBox>
-                                <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
-                                    <children>
-                                        <TextField fx:id="logonLogin" minWidth="200.0">
+                        <Label id="auth_input_error" fx:id="logonError" text="Label" visible="false">
+                            <VBox.margin>
+                                <Insets top="-5.0" />
+                            </VBox.margin>
+                        </Label>
 
-                                        </TextField>
-                                        <PasswordField fx:id="logonPass" minWidth="200.0">
-
-                                        </PasswordField>
-
-                                        <Label fx:id="logonError" text="Label" visible="false"/>
-                                    </children>
-
-                                </VBox>
-                            </children>
-                        </HBox>
-
-                        <Button fx:id="logonBtn" minWidth="200.0" mnemonicParsing="false" onAction="#logonUser"
-                                text="logon"/>
-                        <Button fx:id="regBtn" minWidth="200.0" mnemonicParsing="false" onAction="#toRegPanel"
-                                text="reg"/>
+                        <Button id="auth_buttons" fx:id="logonBtn" focusTraversable="false" mnemonicParsing="false" onAction="#logonUser" text="LOGON">
+                            <VBox.margin>
+                                <Insets top="40.0" />
+                            </VBox.margin>
+                        </Button>
+                        <Button id="auth_buttons" fx:id="regBtn" focusTraversable="false" mnemonicParsing="false" onAction="#toRegPanel" text="REGISTER">
+                            <VBox.margin>
+                                <Insets top="5.0" />
+                            </VBox.margin>
+                        </Button>
 
 
                     </children>
                     <StackPane.margin>
-                        <Insets/>
+                        <Insets />
                     </StackPane.margin>
                 </VBox>
             </children>
             <opaqueInsets>
-                <Insets/>
+                <Insets />
             </opaqueInsets>
             <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
             </padding>
         </StackPane>
     </children>

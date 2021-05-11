@@ -16,7 +16,7 @@ import lombok.extern.log4j.Log4j;
 @Log4j
 @NoArgsConstructor
 public class Server {
-    private ServerProperties properties = ServerProperties.getInstance();
+    private final ServerProperties properties = ServerProperties.getInstance();
     private final int port = properties.getPort();
 
     public void run() {
@@ -31,10 +31,11 @@ public class Server {
                         @Override
                         protected void initChannel(SocketChannel channel) throws Exception {
                             channel.pipeline().addLast(
-                                    new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
+                                    new ObjectDecoder(
+                                            properties.getMaxMessageSize(),
+                                            ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new ServiceMessageHandler(),
-                                    new DataMessageHandler()
+                                    new MessageHandler()
                             );
                         }
                     });
@@ -59,3 +60,7 @@ public class Server {
             new Server().run();
     }
 }
+
+
+//TODO
+//Check if dir exists on client and server

@@ -16,14 +16,13 @@ import java.util.List;
 public class DataMessage extends Message {
     @Builder.Default
     protected DataMessageStatus status = DataMessageStatus.NO_RESPONSE;
-    @Builder.Default
-    protected String currentDir = "";
-    private List<FileEntity> files;
 
+    private List<FileEntity> files;
 
     @Override
     public String toString() {
-        return  String.format("%s: status = %s login = %s; pass = %s,",
-                getClass().getSimpleName() , status, login, password);
+        return  String.format("%s: status = %s",
+                getClass().getSimpleName(),
+                status);
     }
 }

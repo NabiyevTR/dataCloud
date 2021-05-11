@@ -12,5 +12,10 @@ public class ServiceMessage extends Message {
     @Builder.Default
     protected ServiceMessageStatus status = ServiceMessageStatus.NO_RESPONSE;
 
-
+    @Override
+    public String toString() {
+        return  String.format("%s: status = %s",
+                getClass().getSimpleName(),
+                status);
+    }
 }

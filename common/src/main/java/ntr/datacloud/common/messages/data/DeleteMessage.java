@@ -13,6 +13,8 @@ public class DeleteMessage extends DataMessage{
 
     @Override
     public String toString() {
-        return super.toString() + "File to delete = " + fileToDelete;
+        return super.toString() + " " +
+                String.format("Delete file %s",
+                       fileToDelete);
     }
 }
