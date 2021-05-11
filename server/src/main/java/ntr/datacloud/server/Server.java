@@ -16,7 +16,7 @@ import lombok.extern.log4j.Log4j;
 @Log4j
 @NoArgsConstructor
 public class Server {
-    private ServerProperties properties = ServerProperties.getInstance();
+    private final ServerProperties properties = ServerProperties.getInstance();
     private final int port = properties.getPort();
 
     public void run() {
@@ -60,3 +60,7 @@ public class Server {
             new Server().run();
     }
 }
+
+
+//TODO
+//Check if dir exists on client and server

@@ -2,6 +2,7 @@ package ntr.datacloud.client.model;
 
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.messages.Message;
 
@@ -15,17 +16,14 @@ public class NettyNetwork {
     private static NettyNetwork INSTANCE;
 
     private Socket socket;
+    @Getter
+    private boolean active = false;
     private ObjectEncoderOutputStream out;
     private ObjectDecoderInputStream in;
-
     private final int MAX_MESSAGE_SIZE = 5 * 1024 * 1024;
 
-    //todo configure somewhere
-
-
-    private String host = "localhost";
-    private int port = 8189;
-
+    private final String host = System.getenv("HOST");
+    private final int port = Integer.parseInt(System.getenv("PORT"));
 
     public static NettyNetwork getInstance() {
         if (INSTANCE == null) {
@@ -39,11 +37,10 @@ public class NettyNetwork {
             socket = new Socket(host, port);
             out = new ObjectEncoderOutputStream(socket.getOutputStream(), MAX_MESSAGE_SIZE);
             in = new ObjectDecoderInputStream(socket.getInputStream(), MAX_MESSAGE_SIZE);
+            active = true;
             log.info(
                     String.format("Client has connected to server %s/%d successfully", host, port)
             );
-
-
         } catch (Exception e) {
             terminate();
             log.error(
@@ -55,25 +52,23 @@ public class NettyNetwork {
     public void terminate() {
         try {
             out.close();
-            log.debug(out.getClass().getSimpleName() + " was closed successfully.");
         } catch (Exception e) {
-            log.debug(out.getClass().getSimpleName() + " was not closed.");
+            log.debug("ObjectEncoderOutputStream was not closed.");
         }
 
         try {
             in.close();
-            log.debug(in.getClass().getSimpleName() + " was closed successfully.");
         } catch (Exception e) {
-            log.debug(in.getClass().getSimpleName() + " was not closed.");
+            log.debug("ObjectDecoderInputStream was not closed.");
         }
 
         try {
             socket.close();
-            log.debug(socket.getClass().getSimpleName() + " was closed successfully.");
         } catch (Exception e) {
-            log.debug(socket.getClass().getSimpleName() + " was not closed.");
+            log.debug("Socket was not closed.");
         }
 
+        active = false;
         INSTANCE = null;
         log.info(
                 String.format("Connection with server %s/%d was closed ", host, port)

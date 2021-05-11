@@ -7,22 +7,19 @@ import java.util.List;
 
 public interface FileManager {
 
-
-    boolean changeDir(String relPath) throws  IllegalAccessException, NoSuchFileException;
+    boolean changeDir(String relPath) throws IllegalAccessException, NoSuchFileException;
 
     boolean changeDirToParent() throws IllegalAccessException, NoSuchFileException;
 
-    boolean createDir(String relPath) throws IllegalAccessException,  IOException;
+    boolean createDir(String relPath) throws IllegalAccessException, IOException;
 
-    ArrayList<FileEntity> getFiles(String relDir) throws IllegalAccessException,  IOException;
+    ArrayList<FileEntity> getFiles(String relDir) throws IllegalAccessException, IOException;
 
-    ArrayList<FileEntity> getFiles() throws IllegalAccessException,  IOException;
+    ArrayList<FileEntity> getFiles() throws IllegalAccessException, IOException;
 
-    String getCurrentDir();
+    boolean rename(String oldName, String newName) throws IllegalAccessException, IOException;
 
-    boolean rename(String oldName, String newName) throws IllegalAccessException,  IOException;
-
-    boolean delete(String relPath) throws IllegalAccessException,  IOException;
+    boolean delete(String relPath) throws IllegalAccessException, IOException;
 
     byte[] fileToBytes(String relPath) throws IllegalAccessException, IOException;
 
@@ -32,8 +29,9 @@ public interface FileManager {
 
     boolean isFileTransfer();
 
-     void setFileTransfer(boolean fileTransfer);
+    void setFileTransfer(boolean fileTransfer);
 
+    boolean fileExists(String fileName);
 
-
+    String getCurrentDir();
 }

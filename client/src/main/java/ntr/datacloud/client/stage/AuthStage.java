@@ -29,6 +29,6 @@ public class AuthStage extends Stage {
         initStyle(StageStyle.UNDECORATED);
         getIcons().add(new Image("/images/cloud.png"));
         setTitle("DataCloud");
-            }
+    }
 
 }

@@ -1,10 +1,8 @@
 package ntr.datacloud.common.filemanager;
 
-import lombok.*;
 import lombok.extern.log4j.Log4j;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,9 +15,7 @@ public class FileManagerImpl implements FileManager {
 
     private String currentDir;
 
-
-
-    public boolean fileTransfer =false;
+    public boolean fileTransfer = false;
 
     public FileManagerImpl(String rootDir, String currentDir) {
         this.rootDir = rootDir;
@@ -121,10 +117,6 @@ public class FileManagerImpl implements FileManager {
         }
     }
 
-
-    //todo can be shorter?
-
-
     @Override
     public boolean createDir(String relPath) throws IOException, IllegalAccessException {
 
@@ -155,21 +147,19 @@ public class FileManagerImpl implements FileManager {
         long fileSize = Files.size(path);
         long parts = fileSize / frame + 1;
         byte[] buffer = new byte[frame];
-        List<byte[]> bytes = new ArrayList<>((int) (frame * 1.3));
+        List<byte[]> bytes = new ArrayList<>((int) (parts * 1.3));
 
         try (FileInputStream file = new FileInputStream(path.toFile())) {
 
             for (int i = 0; i < parts; i++) {
                 int length = file.read(buffer);
                 bytes.add(
-                        length == frame ?  buffer :  Arrays.copyOf(buffer, length)
+                        Arrays.copyOf(buffer, length == frame ? frame : length)
                 );
             }
         }
         return bytes;
-
     }
-
 
     @Override
     public boolean bytesToFile(byte[] bytes, String fileName) throws IOException, IllegalAccessException {
@@ -181,9 +171,16 @@ public class FileManagerImpl implements FileManager {
             fos.write(bytes);
             return true;
         }
-        // todo catch
     }
 
+    @Override
+    public boolean fileExists(String fileName) {
+
+        Path path = Paths.get(rootDir, currentDir, fileName).normalize();
+        File f = path.toFile();
+
+        return f.exists();
+    }
 
     private void checkAccess(Path path) throws IllegalAccessException {
 
@@ -203,6 +200,4 @@ public class FileManagerImpl implements FileManager {
         }
         return dirToDelete.delete();
     }
-
-
 }

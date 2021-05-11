@@ -123,8 +123,4 @@ public class JDBCAuthService implements AuthService {
         }
         return false;
     }
-
-
-
-
 }

@@ -19,7 +19,6 @@ public class DataMessage extends Message {
 
     private List<FileEntity> files;
 
-
     @Override
     public String toString() {
         return  String.format("%s: status = %s",

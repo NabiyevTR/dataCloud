@@ -13,18 +13,4 @@ public class GetFilesMessage extends DataMessage {
 
     @Builder.Default
     protected String relDir = "";
-
-/*    @Override
-    public String toString() {
-
-        if (getFiles() == null) {
-            return super.toString();
-        } else {
-            return super.toString() + "\nFiles: \n" +
-                    getFiles()
-                            .stream()
-                            .map(f -> f.getName())
-                            .collect(Collectors.joining("\n"));
-        }
-    }*/
 }

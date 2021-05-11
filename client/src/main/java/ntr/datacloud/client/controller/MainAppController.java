@@ -23,6 +23,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.SneakyThrows;
@@ -35,7 +36,6 @@ import ntr.datacloud.common.filemanager.FileEntity;
 import ntr.datacloud.client.model.NettyNetwork;
 import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
-import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.common.messages.service.LogoutMessage;
 
@@ -50,7 +50,8 @@ public class MainAppController implements Initializable {
     private Image folderIcon;
     private Image fileIcon;
 
-    private Callback iconValueFactory = new Callback<TableColumn.CellDataFeatures, ObservableValue>() {
+
+    private final Callback iconValueFactory = new Callback<TableColumn.CellDataFeatures, ObservableValue>() {
         @Override
         public ObservableValue call(TableColumn.CellDataFeatures cellDataFeatures) {
 
@@ -62,6 +63,8 @@ public class MainAppController implements Initializable {
         }
     };
 
+    @FXML
+    private VBox primaryPane;
 
     @FXML
     private TableView serverFileList;
@@ -82,6 +85,10 @@ public class MainAppController implements Initializable {
     private TableColumn clientFileListSizeCol;
 
 
+    @FXML
+    private ImageView btnLogout;
+
+
     @SneakyThrows
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -92,7 +99,6 @@ public class MainAppController implements Initializable {
 
         folderIcon = new Image("/images/folder.png");
         fileIcon = new Image("/images/file.png");
-
 
         // get all files from client root directory
         Platform.runLater(() -> {
@@ -201,27 +207,19 @@ public class MainAppController implements Initializable {
 
 
             } else {
-                //todo notify user
+                notifyAlert(message.getStatus().getStatusText());
             }
-
-
         });
-
     }
 
 
     public void upload(ActionEvent event) throws IOException, IllegalAccessException {
 
-
         FileEntity uploadedFile = (FileEntity) clientFileList.getSelectionModel().getSelectedItem();
         if (uploadedFile == null) return;
 
         Platform.runLater(() -> {
-
-
-
             try {
-
                 List<byte[]> bytes = fileManager.fileToBytes(
                         uploadedFile.getName(),
                         properties.getMaxFileFrame()
@@ -231,24 +229,26 @@ public class MainAppController implements Initializable {
                         .stream().map(b -> UploadMessage.builder()
                                 .fileName(uploadedFile.getName())
                                 .content(b)
-                                .status(DataMessageStatus.OK)
                                 .build())
                         .collect(Collectors.toList());
-                messages.get(messages.size()-1).setLast(true);
-                
-                messages.forEach(network::sendMsg);
+                messages.get(messages.size() - 1).setLast(true);
 
+                for (UploadMessage wMessage : messages) {
+                    network.sendMsg(wMessage);
+                    UploadMessage dMessage = (UploadMessage) network.readMessage();
+
+                    if (dMessage.getStatus() != DataMessageStatus.OK) {
+                        notifyAlert(dMessage.getStatus().getStatusText());
+                        throw new IOException(dMessage.getErrorText());
+                    }
+                    if (dMessage.isLast()) {
+                        handleResponseMessage(dMessage);
+                    }
+                }
             } catch (IllegalAccessException | IOException e) {
-                e.printStackTrace();
-                //todo error message
+                log.warn(e);
             }
-
-            UploadMessage message = (UploadMessage) network.readMessage();
-
-            handleResponseMessage(message);
         });
-
-
     }
 
     public void download(ActionEvent event) {
@@ -267,21 +267,39 @@ public class MainAppController implements Initializable {
             try {
                 while (true) {
                     DownloadMessage message = (DownloadMessage) network.readMessage();
-                    // todo check if file exists
+
+                    if (message.getStatus() != DataMessageStatus.OK) {
+                        log.warn(message.getErrorText());
+                        notifyAlert(message.getStatus().getStatusText());
+                        return;
+                    }
+
+                    // Check if file exists
+                    if (fileManager.fileExists(message.getFileName()) && !fileManager.isFileTransfer()) {
+                        notifyAlert(String.format(
+                                "The file %s already exists",
+                                message.getFileName()
+                        ));
+                        return;
+                    }
+
                     fileManager.setFileTransfer(true);
                     fileManager.bytesToFile(message.getContent(), message.getFileName());
                     if (message.isLast()) {
                         fileManager.setFileTransfer(false);
                         break;
-
                     }
                 }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
 
-                // todo handle
-            } catch (IOException e) {
-                e.printStackTrace();
+            }
+
+            // update tableview
+            try {
+                clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
             }
         });
     }
@@ -295,6 +313,7 @@ public class MainAppController implements Initializable {
                 }
             } catch (IllegalAccessException | IOException e) {
                 log.warn(e);
+                notifyAlert("Cannot change directory");
             }
         });
     }
@@ -312,13 +331,17 @@ public class MainAppController implements Initializable {
 
         Platform.runLater(() -> {
             try {
+                if (fileManager.fileExists(newDir)) {
+                    notifyAlert(DataMessageStatus.DIRECTORY_EXISTS.getStatusText());
+                    return;
+                }
+
                 fileManager.createDir(newDir);
                 clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
 
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
+                notifyAlert("Cannot create directory");
             }
         });
     }
@@ -331,11 +354,10 @@ public class MainAppController implements Initializable {
             try {
                 fileManager.delete(fileToDelete.getName());
                 clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
-            } catch (Exception e) {
-                //todo handle exception;
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
+                notifyAlert("Cannot delete file " + fileToDelete.getName());
             }
-
-
         });
     }
 
@@ -359,8 +381,9 @@ public class MainAppController implements Initializable {
                 fileManager.rename(file.getName(), newName);
                 clientFileList.setItems(FXCollections.observableList(fileManager.getFiles()));
 
-            } catch (Exception e) {
-                //todo handle exception
+            } catch (IllegalAccessException | IOException e) {
+                log.warn(e);
+                notifyAlert("Cannot rename file o directory " + file.getName());
             }
         });
     }
@@ -394,7 +417,6 @@ public class MainAppController implements Initializable {
             network.sendMsg(CreateDirMessage.builder()
                     .newDir(newFolderName)
                     .build());
-
 
             CreateDirMessage message = (CreateDirMessage) network.readMessage();
 
@@ -452,26 +474,28 @@ public class MainAppController implements Initializable {
         if (message.getStatus() == DataMessageStatus.OK) {
             serverFileList.setItems(FXCollections.observableList(message.getFiles()));
         } else {
-
+            log.warn(message.getErrorText());
+            notifyAlert(message.getStatus().getStatusText());
         }
     }
 
+    //todo block buttons while command
 
     public void onKeyPressed(KeyEvent keyEvent) {
         //todo delete error
     }
 
     public void onLogOut(MouseEvent event) {
-        Platform.runLater(() -> {
+      logout();
 
+    }
+
+    private void logout() {
+        Platform.runLater(() -> {
             network.sendMsg(LogoutMessage.builder()
                     .build());
-
             LogoutMessage message = (LogoutMessage) network.readMessage();
-
-
         });
-
 
         try {
             AuthStage.getStage().show();
@@ -479,13 +503,33 @@ public class MainAppController implements Initializable {
 
             properties = null;
         } catch (Exception e) {
+            notifyAlert("Cannot switch to authentication window");
             log.error("Error during changing window: ", e);
         }
-
     }
 
 
+    private void notifyAlert(String contentText) {
+        new Dialog(
+                (Stage) primaryPane.getScene().getWindow(),
+                Dialog.Type.ALERT,
+                contentText
+        );
+    }
+    public void close(ActionEvent event) {
+        btnLogout.fireEvent(event);
+    }
+
+    public void logOut(ActionEvent event) {
+        logout();
+    }
+
+    public void showAbout(ActionEvent event) {
+        new Dialog((Stage) primaryPane.getScene().getWindow(),
+                Dialog.Type.INFORMATION,
+                "DataCloud\nby Nabiyev Timur\n2021");
+    }
 }
 
 
-
+//todo send folders with files

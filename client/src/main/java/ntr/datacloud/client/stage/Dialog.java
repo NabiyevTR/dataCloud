@@ -50,10 +50,14 @@ public class Dialog {
         stage.setTitle("DataCloud");
 
         // Set position of second window, related to primary window.
-        stage.setX(primaryStage.getX() + 200);
-        stage.setY(primaryStage.getY() + 100);
+        stage.setX(primaryStage.getX() + primaryStage.getWidth() / 2 -scene.getWidth() / 2);
+        stage.setY(primaryStage.getY() + primaryStage.getHeight() / 2 - scene.getHeight() / 2);
 
         stage.showAndWait();
+    }
+
+    public Dialog(Stage primaryStage, Type type, String headerText) {
+        this(primaryStage, type, headerText, "");
     }
 
     public String getText() {

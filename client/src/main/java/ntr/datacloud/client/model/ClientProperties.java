@@ -29,6 +29,8 @@ public class ClientProperties {
 
     private String login;
     private String password;
+    private String loginRegex;
+    private String passRegex;
     private final int timeOut = 3000; //ms
     private final Path rootDir = Paths.get("./storage/client").toAbsolutePath().normalize();
     private int maxFileFrame;

@@ -7,5 +7,4 @@ import lombok.experimental.SuperBuilder;
 @Getter
 public class RegMessage extends AuthMessage {
 
-
 }

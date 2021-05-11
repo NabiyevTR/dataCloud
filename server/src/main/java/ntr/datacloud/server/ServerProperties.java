@@ -25,13 +25,10 @@ public class ServerProperties {
         }
     }
 
-
     public static ServerProperties getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new ServerProperties();
         }
         return INSTANCE;
     }
-
-
 }
