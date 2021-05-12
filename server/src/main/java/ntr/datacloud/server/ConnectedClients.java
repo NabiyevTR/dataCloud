@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectedClients {
-
+    
     private static ConnectedClients INSTANCE;
     private final ConcurrentMap<Channel, DataExecutor> executors = new ConcurrentHashMap<>();
 

@@ -5,8 +5,6 @@ import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j;
 import ntr.datacloud.common.messages.Message;
-
-import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.*;
 

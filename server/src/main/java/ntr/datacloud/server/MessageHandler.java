@@ -57,21 +57,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
         if (clients.contains(ctx.channel())) {
             DataExecutor dataExecutor = clients.getExecutor(ctx.channel());
             List<DownloadMessage> messages = dataExecutor.executeDownload(message);
-            messages.forEach(msg -> {
-                try {
-                    sendMessage(ctx, msg);
-                } catch (IOException e) {
-                   log.error("Error: ", e);
-                    message.setStatus(DataMessageStatus.UNKNOWN_ERROR);
-                    message.setErrorText(e.getMessage());
-                    try {
-                        sendMessage(ctx,message);
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                        // todo
-                    }
-                }
-            });
+
+            for (DownloadMessage msg :messages) {
+                sendMessage(ctx, msg);
+            }
+
         } else {
             message.setStatus(DataMessageStatus.ACCESS_DENIED);
             sendMessage(ctx,message);
@@ -143,6 +133,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
 
         return clients.put(
                 channel,
+                message.getLogin(),
                 new DataExecutor(new FileManagerImpl(rootPath.normalize().toString())));
     }
 

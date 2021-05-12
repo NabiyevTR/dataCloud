@@ -53,6 +53,8 @@ public class ServiceExecutor {
     private static Consumer<Message> logonExecutor() {
         return message -> {
             LogonMessage logonMessage = (LogonMessage) message;
+
+
             if (authService.userExists(logonMessage.getLogin(), logonMessage.getPassword())) {
                 logonMessage.setStatus(ServiceMessageStatus.OK);
 
