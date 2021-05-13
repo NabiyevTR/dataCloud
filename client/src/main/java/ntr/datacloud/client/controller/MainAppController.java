@@ -507,19 +507,21 @@ public class MainAppController implements Initializable {
     private void logout() {
         Platform.runLater(() -> {
             network.sendMsg(LogoutMessage.builder()
+                    .login(properties.getLogin())
                     .build());
             LogoutMessage message = (LogoutMessage) network.readMessage();
-        });
-
             AuthStage.getStage().show();
             MainStage.getStage().close();
             properties = null;
+        });
+
 
     }
 
     private void exit() {
         Platform.runLater(() -> {
             network.sendMsg(LogoutMessage.builder()
+                    .login(properties.getLogin())
                     .build());
             LogoutMessage message = (LogoutMessage) network.readMessage();
 

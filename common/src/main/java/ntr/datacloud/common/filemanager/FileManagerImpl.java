@@ -154,7 +154,7 @@ public class FileManagerImpl implements FileManager {
             for (int i = 0; i < parts; i++) {
                 int length = file.read(buffer);
                 bytes.add(
-                        Arrays.copyOf(buffer, length == frame ? frame : length)
+                        Arrays.copyOf(buffer, length)
                 );
             }
         }

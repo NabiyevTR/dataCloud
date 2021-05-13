@@ -235,7 +235,7 @@ public class AuthController implements Initializable {
                 goToMainStage();
 
             } else {
-                showError(authMessage.getErrorText());
+                showError(authMessage.getStatus().getStatusText());
             }
         } else {
             showError(message.getErrorText());
