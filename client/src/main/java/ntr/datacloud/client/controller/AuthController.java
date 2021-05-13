@@ -17,8 +17,6 @@ import ntr.datacloud.client.stage.Dialog;
 import ntr.datacloud.client.stage.MainStage;
 import ntr.datacloud.common.messages.Message;
 import ntr.datacloud.common.messages.service.*;
-
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -79,7 +77,6 @@ public class AuthController implements Initializable {
     }
 
 
-
     @FXML
     private void backToLogonPanel(ActionEvent actionEvent) {
         regPanel.setVisible(false);
@@ -136,7 +133,6 @@ public class AuthController implements Initializable {
     @FXML
     private void logonUser(ActionEvent actionEvent) {
 
-
         if (logonLogin.getText().isEmpty() && logonPass.getText().isEmpty()) {
             logonError.setText("Login and pass field are empty");
             logonError.setVisible(true);
@@ -191,39 +187,24 @@ public class AuthController implements Initializable {
 
     private void goToMainStage() {
         resetFields();
-
-        try {
-            MainStage.getStage().show();
-            AuthStage.getStage().hide();
-        } catch (Exception e) {
-            log.error("Error during changing window: ", e);
-        }
+        MainStage.getStage().show();
+        AuthStage.getStage().hide();
     }
 
     private void exit() {
-        try {
-            AuthStage.getStage().close();
-        } catch (IOException e) {
-            log.error("Cannot close AuthStage: ", e);
-        }
-        try {
-            MainStage.getStage().close();
-        } catch (IOException e) {
-            log.error("Cannot close MainStage: ", e);
-        }
+        AuthStage.getStage().close();
+        network.terminate();
         Platform.exit();
         System.exit(0);
     }
 
     private void resetFields() {
-
         regPass.setText("");
         regLogin.setText("");
         regPassRepeat.setText("");
         logonLogin.setText("");
         logonPass.setText("");
         hideError();
-
     }
 
     private void handleAuthMessage(Message message) {
@@ -243,7 +224,7 @@ public class AuthController implements Initializable {
 
                 if (text != null) {
                     new Dialog(
-                            (Stage)authPanel.getScene().getWindow(),
+                            (Stage) authPanel.getScene().getWindow(),
                             Dialog.Type.INFORMATION,
                             text
                     );
@@ -254,7 +235,7 @@ public class AuthController implements Initializable {
                 goToMainStage();
 
             } else {
-                showError(authMessage.getErrorText());
+                showError(authMessage.getStatus().getStatusText());
             }
         } else {
             showError(message.getErrorText());

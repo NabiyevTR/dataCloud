@@ -38,6 +38,7 @@ import ntr.datacloud.common.filemanager.FileManager;
 import ntr.datacloud.common.filemanager.FileManagerImpl;
 import ntr.datacloud.common.messages.data.*;
 import ntr.datacloud.common.messages.service.LogoutMessage;
+import ntr.datacloud.common.messages.service.ServiceMessageStatus;
 
 
 @Log4j
@@ -212,6 +213,29 @@ public class MainAppController implements Initializable {
         });
     }
 
+    //menu controls
+
+    public void menuLogout(ActionEvent event) {
+        logout();
+    }
+
+    public void menuClose(ActionEvent event) {
+        exit();
+    }
+
+    public void showAbout(ActionEvent event) {
+        new Dialog((Stage) primaryPane.getScene().getWindow(),
+                Dialog.Type.INFORMATION,
+                "DataCloud\nby Nabiyev Timur\n2021");
+    }
+
+    // Header controls
+
+    public void onLogOut(MouseEvent event) {
+        logout();
+    }
+
+    // Client controls
 
     public void upload(ActionEvent event) throws IOException, IllegalAccessException {
 
@@ -388,6 +412,8 @@ public class MainAppController implements Initializable {
         });
     }
 
+    // Server controls
+
     public void goToParentDirOnServer(ActionEvent event) {
         Platform.runLater(() -> {
             network.sendMsg(ChangeDirMessage.builder()
@@ -397,7 +423,6 @@ public class MainAppController implements Initializable {
             ChangeDirMessage message = (ChangeDirMessage) network.readMessage();
 
             handleResponseMessage(message);
-
         });
     }
 
@@ -437,7 +462,6 @@ public class MainAppController implements Initializable {
             DeleteMessage message = (DeleteMessage) network.readMessage();
 
             handleResponseMessage(message);
-
         });
     }
 
@@ -466,9 +490,10 @@ public class MainAppController implements Initializable {
             RenameMessage message = (RenameMessage) network.readMessage();
 
             handleResponseMessage(message);
-
         });
     }
+
+    // Helpers
 
     private void handleResponseMessage(DataMessage message) {
         if (message.getStatus() == DataMessageStatus.OK) {
@@ -479,35 +504,38 @@ public class MainAppController implements Initializable {
         }
     }
 
-    //todo block buttons while command
-
-    public void onKeyPressed(KeyEvent keyEvent) {
-        //todo delete error
-    }
-
-    public void onLogOut(MouseEvent event) {
-      logout();
-
-    }
-
     private void logout() {
         Platform.runLater(() -> {
             network.sendMsg(LogoutMessage.builder()
+                    .login(properties.getLogin())
                     .build());
             LogoutMessage message = (LogoutMessage) network.readMessage();
-        });
-
-        try {
             AuthStage.getStage().show();
             MainStage.getStage().close();
-
             properties = null;
-        } catch (Exception e) {
-            notifyAlert("Cannot switch to authentication window");
-            log.error("Error during changing window: ", e);
-        }
+        });
+
+
     }
 
+    private void exit() {
+        Platform.runLater(() -> {
+            network.sendMsg(LogoutMessage.builder()
+                    .login(properties.getLogin())
+                    .build());
+            LogoutMessage message = (LogoutMessage) network.readMessage();
+
+            if (message.getStatus() != ServiceMessageStatus.OK) {
+                log.warn("Abnormal program termination.");
+            }
+            MainStage.getStage().close();
+            MainStage.getStage().close();
+            network.terminate();
+            properties = null;
+            Platform.exit();
+            System.exit(0);
+        });
+    }
 
     private void notifyAlert(String contentText) {
         new Dialog(
@@ -516,20 +544,5 @@ public class MainAppController implements Initializable {
                 contentText
         );
     }
-    public void close(ActionEvent event) {
-        btnLogout.fireEvent(event);
-    }
-
-    public void logOut(ActionEvent event) {
-        logout();
-    }
-
-    public void showAbout(ActionEvent event) {
-        new Dialog((Stage) primaryPane.getScene().getWindow(),
-                Dialog.Type.INFORMATION,
-                "DataCloud\nby Nabiyev Timur\n2021");
-    }
 }
 
-
-//todo send folders with files

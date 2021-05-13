@@ -57,24 +57,14 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
         if (clients.contains(ctx.channel())) {
             DataExecutor dataExecutor = clients.getExecutor(ctx.channel());
             List<DownloadMessage> messages = dataExecutor.executeDownload(message);
-            messages.forEach(msg -> {
-                try {
-                    sendMessage(ctx, msg);
-                } catch (IOException e) {
-                   log.error("Error: ", e);
-                    message.setStatus(DataMessageStatus.UNKNOWN_ERROR);
-                    message.setErrorText(e.getMessage());
-                    try {
-                        sendMessage(ctx,message);
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                        // todo
-                    }
-                }
-            });
+
+            for (DownloadMessage msg : messages) {
+                sendMessage(ctx, msg);
+            }
+
         } else {
             message.setStatus(DataMessageStatus.ACCESS_DENIED);
-            sendMessage(ctx,message);
+            sendMessage(ctx, message);
         }
     }
 
@@ -94,22 +84,18 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
         ServiceExecutor.execute(serviceMessage);
 
         // add  after successful authorization
-        if (serviceMessage instanceof AuthMessage
+        if ((serviceMessage instanceof LogonMessage || serviceMessage instanceof RegMessage)
                 && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
-            if (!addClient(ctx.channel(), (AuthMessage) serviceMessage)) {
-                //User is on the client connected list but not authenticated
-                serviceMessage.setStatus(ServiceMessageStatus.USER_IS_NOT_IN_CONNECTED_CLIENT_LIST);
-            } else {
-                log.info(
-                        String.format("Client %s connected.",
-                                ctx.channel().remoteAddress())
-                );
-            }
+            addClient(ctx.channel(), (AuthMessage) serviceMessage);
+            log.info(
+                    String.format("Client %s connected.",
+                            ctx.channel().remoteAddress())
+            );
         }
 
         // Remove clients after logout
         if (serviceMessage instanceof LogoutMessage && serviceMessage.getStatus() == ServiceMessageStatus.OK) {
-            clients.remove(ctx.channel());
+            clients.remove(((LogoutMessage) serviceMessage).getLogin());
             ctx.channel().closeFuture();
             log.info(
                     String.format("Client %s disconnected.",
@@ -118,6 +104,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
         }
 
         sendMessage(ctx, message);
+
     }
 
 
@@ -134,16 +121,21 @@ public class MessageHandler extends SimpleChannelInboundHandler<Message> {
     }
 
 
-    private boolean addClient(Channel channel, AuthMessage message) {
+    private void addClient(Channel channel, AuthMessage message) {
 
         Path rootPath = Paths.get(
                 properties.getRootDir().toString(),
                 message.getLogin()
         );
 
-        return clients.put(
-                channel,
-                new DataExecutor(new FileManagerImpl(rootPath.normalize().toString())));
+        if (clients.contains(message.getLogin())) {
+            message.setStatus(ServiceMessageStatus.USER_IS_ALREADY_AUTHENTIFICATED);
+        } else {
+            clients.put(
+                    channel,
+                    message.getLogin(),
+                    new DataExecutor(new FileManagerImpl(rootPath.normalize().toString())));
+        }
     }
 
 }

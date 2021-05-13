@@ -5,6 +5,6 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Getter
-public class LogoutMessage extends ServiceMessage {
+public class LogoutMessage extends AuthMessage {
 
 }

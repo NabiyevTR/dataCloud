@@ -55,12 +55,7 @@ public class Server {
         }
     }
 
-
     public static void main(String[] args) {
             new Server().run();
     }
 }
-
-
-//TODO
-//Check if dir exists on client and server

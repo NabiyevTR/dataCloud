@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import lombok.SneakyThrows;
 import ntr.datacloud.client.DataCloudClient;
 
 import java.io.IOException;
@@ -14,14 +15,15 @@ public class AuthStage extends Stage {
 
     private static AuthStage INSTANCE;
 
-    public static AuthStage getStage() throws IOException {
+    public static AuthStage getStage()  {
         if (INSTANCE == null) {
             INSTANCE = new AuthStage();
         }
         return INSTANCE;
     }
 
-    protected AuthStage() throws IOException {
+    @SneakyThrows
+    protected AuthStage() {
         FXMLLoader fxmlLoader = new FXMLLoader(DataCloudClient.class.getResource("auth.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
         setScene(scene);
